@@ -129,6 +129,23 @@
     opacity: 0.35;
     text-decoration: line-through;
   }
+  .day-column.holiday { background: #fef2f2; }
+  .day-column.holiday .day-header { color: #dc2626; }
+  .month-day-cell.holiday { background: #fef2f2; }
+  .month-day-cell.holiday .month-day-num { color: #dc2626; }
+  .year-mini-cell.holiday { color: #dc2626; }
+  .holiday-label {
+    color: #dc2626;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px;
+  }
+  .holiday-label-sm {
+    color: #dc2626;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
 
   /* Month View */
   .month-grid {
@@ -297,7 +314,7 @@ const EMPLOYEES = [
   { name: 'Lars de Vries', short: 'Lars', kantoor: 'Hattem', color: '#3b82f6', uren: 40,
     days: [1,2,3,4,5], note: '', startDate: '2026-04-01' },
   { name: 'Gerben', short: 'Gerben', kantoor: 'Hattem', color: '#8b5cf6', uren: 32,
-    days: [1,2,4,5], note: 'Vrij op woensdag' },
+    days: [1,2,4,5], note: 'Vrij op woensdag', startDate: '2026-03-01' },
   { name: 'Henriëtte', short: 'Henriëtte', kantoor: 'Zwolle', color: '#3b82f6', uren: 30,
     days: [1,2,3,4], note: 'Vrij op vrijdag' },
   { name: 'Kyra Willems', short: 'Kyra', kantoor: 'Zwolle', color: '#8b5cf6', uren: 36,
@@ -309,13 +326,32 @@ const EMPLOYEES = [
   { name: 'Hester van Laar', short: 'Hester', kantoor: 'Zwolle', color: '#22c55e', uren: 24,
     days: [1,2,3], note: '' },
   { name: 'Maurits', short: 'Maurits', kantoor: 'Zwolle', color: '#ef4444', uren: 16,
-    days: [4,5], note: 'Do+Vr',
+    days: [4,5], note: 'Do+Vr', startDate: '2026-03-01',
     changeDate: '2026-05-01', newDays: [1,2,4,5], newUren: 32, newNote: 'Vrij op woensdag' },
   { name: 'Manon Lemstra - Lans', short: 'Manon', kantoor: 'Hattem', color: '#22c55e', uren: 28,
     days: [1,2,3,4], note: 'Wo halve dag', endDate: '2026-06-01' },
   { name: 'Sjantien van Ommen', short: 'Sjantien', kantoor: 'Hattem', color: '#f97316', uren: 24,
-    days: [1,2,3], note: '', endDate: '2026-04-01' },
+    days: [2,3,5], note: 'Vrij op maandag en donderdag', endDate: '2026-04-01' },
 ];
+
+const HOLIDAYS = [
+  { date: '2026-01-01', name: 'Nieuwjaarsdag' },
+  { date: '2026-04-06', name: 'Tweede Paasdag' },
+  { date: '2026-04-27', name: 'Koningsdag' },
+  { date: '2026-05-05', name: 'Bevrijdingsdag' },
+  { date: '2026-05-14', name: 'Hemelvaartsdag' },
+  { date: '2026-05-25', name: 'Tweede Pinksterdag' },
+  { date: '2026-12-25', name: 'Eerste Kerstdag' },
+  { date: '2026-12-28', name: 'Bedrijfssluiting' },
+  { date: '2026-12-29', name: 'Bedrijfssluiting' },
+  { date: '2026-12-30', name: 'Bedrijfssluiting' },
+  { date: '2026-12-31', name: 'Bedrijfssluiting' },
+];
+
+function getHoliday(date) {
+  const dateStr = toLocalDateStr(date);
+  return HOLIDAYS.find(h => h.date === dateStr);
+}
 
 const DAY_NAMES = ['', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag'];
 const DAY_SHORT = ['', 'Ma', 'Di', 'Wo', 'Do', 'Vr'];
@@ -339,15 +375,22 @@ function getMonday(d) {
   return new Date(date.setDate(diff));
 }
 
+function toLocalDateStr(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 function isEmployeeActive(emp, date) {
-  const dateStr = date.toISOString().split('T')[0];
+  const dateStr = toLocalDateStr(date);
   if (emp.endDate && dateStr >= emp.endDate) return false;
   if (emp.startDate && dateStr < emp.startDate) return false;
   return true;
 }
 
 function getEmployeeDays(emp, date) {
-  const dateStr = date.toISOString().split('T')[0];
+  const dateStr = toLocalDateStr(date);
   let days = emp.days;
   let note = emp.note;
   if (emp.changeDate && dateStr >= emp.changeDate) {
@@ -416,14 +459,16 @@ function renderWeek() {
   for (let i = 0; i < 5; i++) {
     const day = new Date(monday.getTime() + i * 86400000);
     const today = isToday(day) ? ' today' : '';
-    const workers = getWorkingEmployees(day);
-    html += `<div class="day-column${today}">
+    const holiday = getHoliday(day);
+    const workers = holiday ? [] : getWorkingEmployees(day);
+    html += `<div class="day-column${today}${holiday ? ' holiday' : ''}">
       <div class="day-header">
         ${DAY_NAMES[day.getDay()]}
         <span class="day-date">${formatDate(day)}</span>
       </div>
       <div class="day-body">
-        ${workers.map(e => {
+        ${holiday ? `<div class="holiday-label">${holiday.name}</div>` : ''}
+        ${!holiday ? workers.map(e => {
           let note = '';
           if (day.getDay() === 3 && e.altWednesday) note = 'wisselweek';
           const { note: empNote } = getEmployeeDays(e, day);
@@ -434,8 +479,8 @@ function renderWeek() {
             <span class="legend-kantoor">${e.kantoor}</span>
             ${note ? `<span class="person-note">${note}</span>` : ''}
           </div>`;
-        }).join('')}
-        ${workers.length === 0 ? '<div style="color:var(--muted);font-size:13px;padding:8px">Niemand aanwezig</div>' : ''}
+        }).join('') : ''}
+        ${!holiday && workers.length === 0 ? '<div style="color:var(--muted);font-size:13px;padding:8px">Niemand aanwezig</div>' : ''}
       </div>
     </div>`;
   }
@@ -475,13 +520,15 @@ function renderMonth() {
     const dow = date.getDay();
     if (dow >= 1 && dow <= 5) {
       const today = isToday(date) ? ' today' : '';
-      const workers = getWorkingEmployees(date);
-      html += `<div class="month-day-cell${today}">
+      const holiday = getHoliday(date);
+      const workers = holiday ? [] : getWorkingEmployees(date);
+      html += `<div class="month-day-cell${today}${holiday ? ' holiday' : ''}">
         <div class="month-day-num">${dayNum}</div>
-        ${workers.map(e => `<div class="month-person">
+        ${holiday ? `<div class="holiday-label-sm">${holiday.name}</div>` : ''}
+        ${!holiday ? workers.map(e => `<div class="month-person">
           <div class="month-dot" style="background:${e.color}"></div>
           <span>${e.short}</span>
-        </div>`).join('')}
+        </div>`).join('') : ''}
       </div>`;
     }
     dayNum++;
@@ -525,15 +572,16 @@ function renderYear() {
       const date = new Date(year, m, day);
       const dow = date.getDay();
       if (dow >= 1 && dow <= 5) {
-        const workers = getWorkingEmployees(date);
+        const holiday = getHoliday(date);
+        const workers = holiday ? [] : getWorkingEmployees(date);
         const today = isToday(date) ? ' today' : '';
         const count = workers.length;
-        const opacity = Math.min(count / 8, 1);
-        const tooltip = workers.map(e => e.short).join(', ');
-        html += `<div class="year-mini-cell${today}">
+        const opacity = holiday ? 0 : Math.min(count / 8, 1);
+        const tooltip = holiday ? holiday.name : (workers.map(e => e.short).join(', ') || 'Niemand');
+        html += `<div class="year-mini-cell${today}${holiday ? ' holiday' : ''}">
           ${day}
-          <div class="bar-indicator" style="background:rgba(59,130,246,${opacity})"></div>
-          <div class="year-tooltip">${day} ${MONTH_NAMES[m].substring(0,3)}: ${tooltip || 'Niemand'}</div>
+          <div class="bar-indicator" style="background:${holiday ? 'rgba(239,68,68,0.3)' : `rgba(59,130,246,${opacity})`}"></div>
+          <div class="year-tooltip">${day} ${MONTH_NAMES[m].substring(0,3)}: ${tooltip}</div>
         </div>`;
       }
     }
