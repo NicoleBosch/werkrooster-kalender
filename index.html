@@ -328,6 +328,39 @@
     color: #cbd5e1;
   }
 
+  /* Half day */
+  .cell-half {
+    background: linear-gradient(to bottom, var(--primary-light) 50%, var(--off) 50%);
+    border-left-color: var(--primary);
+    position: relative;
+  }
+  .cell-half .cell-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+  }
+  .cell-half .cell-sub {
+    font-size: 9px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .cell-half .half-divider {
+    position: absolute;
+    left: 4px;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: var(--off-border);
+    border-top: 1px dashed var(--muted);
+  }
+  .cell-half .half-bottom {
+    font-size: 9px;
+    color: var(--off-border);
+    margin-top: 6px;
+    font-style: italic;
+  }
+
   /* Not yet started / left */
   .cell-inactive {
     background: #fafafa;
@@ -583,7 +616,8 @@ const EMPLOYEES = [
   { name: 'Gerben', short: 'Gerben', kantoor: 'Hattem', color: '#8b5cf6', uren: 32,
     days: [1,2,4,5], note: 'Vrij op woensdag', startDate: '2026-03-01' },
   { name: 'Manon Lemstra - Lans', short: 'Manon', kantoor: 'Hattem', color: '#22c55e', uren: 28,
-    days: [1,2,3,4], note: 'Wo halve dag', endDate: '2026-06-01' },
+    days: [1,2,3,4], note: 'Wo halve dag', endDate: '2026-06-01',
+    halfDays: { 3: 'ochtend' } },
   { name: 'Sjantien van Ommen', short: 'Sjantien', kantoor: 'Hattem', color: '#f97316', uren: 24,
     days: [2,3,5], note: 'Di+Wo+Vr', endDate: '2026-04-01' },
 ];
@@ -746,11 +780,22 @@ function renderDayCell(emp, date) {
   }
 
   if (works) {
-    let sub = '';
     const dow = date.getDay();
+    // Check for half day
+    if (emp.halfDays && emp.halfDays[dow]) {
+      const period = emp.halfDays[dow]; // 'ochtend' or 'middag'
+      const label = period === 'ochtend' ? 'Ochtend' : 'Middag';
+      const offLabel = period === 'ochtend' ? 'Middag vrij' : 'Ochtend vrij';
+      return `<div class="day-cell cell-half">
+        <span class="cell-label">${label}</span>
+        <span class="cell-sub">Halve dag</span>
+        <div class="half-divider"></div>
+        <span class="half-bottom">${offLabel}</span>
+      </div>`;
+    }
+    let sub = '';
     if (dow === 3 && emp.altWednesday) sub = 'wisselwoensdag';
     const { note } = getEmployeeDays(emp, date);
-    if (dow === 3 && note && note.includes('halve dag')) sub = 'halve dag';
     return `<div class="day-cell cell-work">
       <span class="cell-label">Aanwezig</span>
       ${sub ? `<span class="cell-sub">${sub}</span>` : '<span class="cell-sub">Werkdag</span>'}
