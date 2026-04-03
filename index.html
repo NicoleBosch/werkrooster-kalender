@@ -4,25 +4,44 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admono Werkrooster</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #fff;
-    --text: #1a1a1a;
-    --border: #e5e5e5;
+    --bg: #f6faf5;
+    --text: #181d1a;
     --muted: #6b7280;
-    --hover: #f9fafb;
-    --today-bg: #eff6ff;
-    --today-border: #3b82f6;
+    --border: #e5e7eb;
+    --card: #ffffff;
+    --primary: #005e3f;
+    --primary-light: #e8f5ee;
+    --primary-container: #087953;
+    --vacation: #7c3aed;
+    --vacation-light: #f3e8ff;
+    --vacation-border: #a78bfa;
+    --holiday: #dc2626;
+    --holiday-light: #fef2f2;
+    --holiday-border: #f87171;
+    --off: #f1f5f9;
+    --off-border: #cbd5e1;
+    --today-ring: #3b82f6;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #f5f5f5;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
     color: var(--text);
     min-height: 100vh;
   }
-  .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
-  header {
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+
+  /* Layout */
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+  /* Header */
+  .top-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -30,36 +49,73 @@
     flex-wrap: wrap;
     gap: 16px;
   }
-  h1 { font-size: 24px; font-weight: 700; }
-  .nav-row {
+  .brand {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
+  }
+  .brand-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+  .brand h1 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--primary);
+  }
+  .brand-sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* Navigation */
+  .nav-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
   }
   .nav-btn {
-    background: white;
+    background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 14px;
+    border-radius: 10px;
+    padding: 8px 16px;
     cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .nav-btn:hover { background: #f0f0f0; }
+  .nav-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+  .period-label {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text);
+    margin-left: 8px;
+  }
+  .period-sub {
     font-size: 14px;
     font-weight: 500;
-    transition: all 0.15s;
-  }
-  .nav-btn:hover { background: var(--hover); border-color: #ccc; }
-  .nav-btn.active { background: var(--text); color: white; border-color: var(--text); }
-  .period-label {
-    font-size: 18px;
-    font-weight: 600;
-    min-width: 220px;
-    text-align: center;
+    color: var(--muted);
+    margin-left: 4px;
   }
   .kantoor-tabs {
     display: flex;
     gap: 4px;
-    background: var(--border);
+    background: #e5e7eb;
     border-radius: 10px;
     padding: 3px;
+    margin-left: auto;
   }
   .kantoor-tab {
     padding: 6px 16px;
@@ -67,84 +123,248 @@
     border: none;
     cursor: pointer;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     background: transparent;
     color: var(--muted);
     transition: all 0.15s;
+    font-family: inherit;
   }
-  .kantoor-tab.active { background: white; color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-
-  /* Week View */
-  .week-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
-  }
-  .day-column {
+  .kantoor-tab.active {
     background: white;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    overflow: hidden;
-    transition: box-shadow 0.15s;
+    color: var(--primary);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   }
-  .day-column:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-  .day-column.today { border-color: var(--today-border); border-width: 2px; }
-  .day-header {
-    padding: 12px 16px;
-    font-weight: 600;
-    font-size: 14px;
-    border-bottom: 1px solid var(--border);
+  .view-tabs {
+    display: flex;
+    gap: 4px;
+  }
+
+  /* Section Divider */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 28px 0 16px;
+  }
+  .section-divider .line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--primary);
+    background: var(--primary-light);
+    padding: 4px 14px;
+    border-radius: 20px;
+    border: 1px solid #c6ebd5;
+    white-space: nowrap;
+  }
+
+  /* Roster Grid */
+  .roster-grid {
+    display: grid;
+    grid-template-columns: 220px repeat(5, 1fr);
+    gap: 8px;
+  }
+  .grid-header {
+    text-align: center;
+    padding: 10px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+  }
+  .grid-header.today-header {
+    color: var(--today-ring);
+  }
+  .grid-header .header-date {
+    display: block;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+    margin-top: 2px;
+  }
+  .grid-header.today-header .header-date {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--today-ring);
+    color: white;
+    border-radius: 50%;
+  }
+
+  /* Employee Card (left column) */
+  .emp-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--card);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .emp-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .emp-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .emp-meta {
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* Day Cells */
+  .day-cell {
+    border-radius: 10px;
+    padding: 8px 10px;
+    min-height: 52px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-left: 4px solid transparent;
+    transition: transform 0.1s;
+  }
+  .day-cell:hover { transform: scale(1.02); }
+
+  /* Work day */
+  .cell-work {
+    background: var(--primary-light);
+    border-left-color: var(--primary);
+  }
+  .cell-work .cell-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+  }
+  .cell-work .cell-sub {
+    font-size: 9px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* Vacation */
+  .cell-vacation {
+    background: var(--vacation-light);
+    border-left-color: var(--vacation-border);
+  }
+  .cell-vacation .cell-top {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
   }
-  .day-column.today .day-header { background: var(--today-bg); }
-  .day-date { font-size: 12px; color: var(--muted); font-weight: 400; }
-  .day-body { padding: 8px; }
-  .person-chip {
+  .cell-vacation .cell-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--vacation);
+    text-transform: uppercase;
+  }
+  .cell-vacation .cell-icon {
+    font-size: 16px;
+    color: var(--vacation-border);
+  }
+  .cell-vacation .cell-sub {
+    font-size: 9px;
+    color: var(--vacation-border);
+    margin-top: 2px;
+  }
+
+  /* Holiday */
+  .cell-holiday {
+    background: var(--holiday-light);
+    border-left-color: var(--holiday-border);
+  }
+  .cell-holiday .cell-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .cell-holiday .cell-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--holiday);
+    text-transform: uppercase;
+  }
+  .cell-holiday .cell-icon {
+    font-size: 16px;
+    color: var(--holiday-border);
+  }
+  .cell-holiday .cell-sub {
+    font-size: 9px;
+    color: var(--holiday-border);
+    margin-top: 2px;
+  }
+
+  /* Off / not working */
+  .cell-off {
+    background: var(--off);
+    border-left-color: var(--off-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cell-off .cell-icon {
+    font-size: 20px;
+    color: #cbd5e1;
+  }
+
+  /* Not yet started / left */
+  .cell-inactive {
+    background: #fafafa;
+    border-left-color: #e5e5e5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cell-inactive .cell-icon {
+    font-size: 18px;
+    color: #d4d4d4;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 12px 18px;
+    background: var(--card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  .legend-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 10px;
-    border-radius: 8px;
-    margin-bottom: 4px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
-    transition: transform 0.1s;
-  }
-  .person-chip:hover { transform: translateX(2px); }
-  .person-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-  .person-note {
-    font-size: 11px;
     color: var(--muted);
-    font-weight: 400;
-    margin-left: auto;
   }
-  .absent-chip {
-    opacity: 0.35;
-    text-decoration: line-through;
-  }
-  .day-column.holiday { background: #fef2f2; }
-  .day-column.holiday .day-header { color: #dc2626; }
-  .month-day-cell.holiday { background: #fef2f2; }
-  .month-day-cell.holiday .month-day-num { color: #dc2626; }
-  .year-mini-cell.holiday { color: #dc2626; }
-  .holiday-label {
-    color: #dc2626;
-    font-size: 14px;
-    font-weight: 600;
-    padding: 8px;
-  }
-  .holiday-label-sm {
-    color: #dc2626;
-    font-size: 11px;
-    font-weight: 600;
-    line-height: 1.2;
+  .legend-swatch {
+    width: 24px;
+    height: 14px;
+    border-radius: 4px;
+    border-left: 3px solid;
   }
 
   /* Month View */
@@ -166,17 +386,19 @@
   .month-day-cell {
     background: white;
     padding: 8px;
-    min-height: 90px;
+    min-height: 100px;
     vertical-align: top;
   }
-  .month-day-cell.today { background: var(--today-bg); }
+  .month-day-cell.today { background: #eff6ff; }
   .month-day-cell.empty { background: #fafafa; }
+  .month-day-cell.holiday { background: var(--holiday-light); }
   .month-day-num {
     font-size: 12px;
     font-weight: 600;
     color: var(--muted);
     margin-bottom: 4px;
   }
+  .month-day-cell.holiday .month-day-num { color: var(--holiday); }
   .month-person {
     display: flex;
     align-items: center;
@@ -189,6 +411,19 @@
     height: 7px;
     border-radius: 50%;
     flex-shrink: 0;
+  }
+  .month-person.vacation {
+    background: var(--vacation-light);
+    border-radius: 3px;
+    padding: 1px 3px;
+    color: var(--vacation);
+    text-decoration: line-through;
+  }
+  .holiday-label-sm {
+    color: var(--holiday);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
   }
 
   /* Year View */
@@ -223,7 +458,8 @@
     cursor: default;
     position: relative;
   }
-  .year-mini-cell.today { background: var(--today-bg); font-weight: 700; }
+  .year-mini-cell.today { background: #eff6ff; font-weight: 700; }
+  .year-mini-cell.holiday { color: var(--holiday); }
   .year-mini-cell:hover .year-tooltip { display: block; }
   .year-tooltip {
     display: none;
@@ -246,92 +482,110 @@
     margin-top: 2px;
   }
 
-  /* Legend */
-  .legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 20px;
-    padding: 14px 18px;
-    background: white;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-  }
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-  }
-  .legend-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-  }
-  .legend-kantoor {
-    font-size: 11px;
-    color: var(--muted);
-    background: #f3f4f6;
-    padding: 1px 6px;
-    border-radius: 4px;
-  }
-
-  @media (max-width: 768px) {
-    .week-grid { grid-template-columns: 1fr; }
+  @media (max-width: 900px) {
+    .roster-grid {
+      grid-template-columns: 160px repeat(5, 1fr);
+      gap: 4px;
+    }
+    .emp-card { padding: 6px 8px; }
+    .emp-avatar { width: 30px; height: 30px; font-size: 11px; }
+    .emp-name { font-size: 11px; }
+    .day-cell { padding: 4px 6px; min-height: 40px; }
+    .cell-work .cell-label, .cell-vacation .cell-label, .cell-holiday .cell-label { font-size: 9px; }
     .year-grid { grid-template-columns: repeat(2, 1fr); }
-    .day-column { border-radius: 8px; }
-    header { flex-direction: column; align-items: flex-start; }
+  }
+  @media (max-width: 600px) {
+    .roster-grid { grid-template-columns: 120px repeat(5, 1fr); gap: 3px; }
+    .emp-avatar { display: none; }
+    .nav-bar { gap: 6px; }
+    .period-label { font-size: 16px; }
   }
 </style>
 </head>
 <body>
 <div class="container">
-  <header>
-    <h1>Admono Werkrooster</h1>
+  <!-- Header -->
+  <div class="top-bar">
+    <div class="brand">
+      <div class="brand-icon">
+        <span class="material-symbols-outlined">calendar_view_month</span>
+      </div>
+      <div>
+        <h1>Admono Werkrooster</h1>
+        <span class="brand-sub">Nicole Bosch Makelaardij</span>
+      </div>
+    </div>
     <div class="kantoor-tabs">
       <button class="kantoor-tab active" onclick="setKantoor('alle')">Alle</button>
       <button class="kantoor-tab" onclick="setKantoor('Zwolle')">Zwolle</button>
       <button class="kantoor-tab" onclick="setKantoor('Hattem')">Hattem</button>
     </div>
-  </header>
-  <div class="nav-row" style="margin-bottom:16px;">
-    <button class="nav-btn" onclick="navigate(-1)">&larr;</button>
+  </div>
+
+  <!-- Navigation -->
+  <div class="nav-bar">
+    <button class="nav-btn" onclick="navigate(-1)">
+      <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle">chevron_left</span>
+    </button>
     <button class="nav-btn" onclick="goToday()">Vandaag</button>
-    <button class="nav-btn" onclick="navigate(1)">&rarr;</button>
+    <button class="nav-btn" onclick="navigate(1)">
+      <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle">chevron_right</span>
+    </button>
     <span class="period-label" id="periodLabel"></span>
-    <div style="margin-left:auto; display:flex; gap:4px;">
+    <span class="period-sub" id="periodSub"></span>
+    <div class="view-tabs" style="margin-left:auto;">
       <button class="nav-btn active" id="btnWeek" onclick="setView('week')">Week</button>
       <button class="nav-btn" id="btnMonth" onclick="setView('month')">Maand</button>
       <button class="nav-btn" id="btnYear" onclick="setView('year')">Jaar</button>
     </div>
   </div>
-  <div class="legend" id="legend"></div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:var(--primary-light);border-left-color:var(--primary)"></div>
+      Werkdag
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:var(--vacation-light);border-left-color:var(--vacation-border)"></div>
+      Vakantie / Vrij
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:var(--holiday-light);border-left-color:var(--holiday-border)"></div>
+      Feestdag
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:var(--off);border-left-color:var(--off-border)"></div>
+      Niet ingeroosterd
+    </div>
+  </div>
+
   <div id="calendar"></div>
 </div>
 
 <script>
 const EMPLOYEES = [
+  { name: 'Henriëtte', short: 'Henriëtte', kantoor: 'Zwolle', color: '#3b82f6', uren: 30,
+    days: [1,2,3,4], note: 'Vrij op vrijdag' },
+  { name: 'Kyra Willems', short: 'Kyra', kantoor: 'Zwolle', color: '#8b5cf6', uren: 36,
+    days: [1,2,4,5], altWednesday: 'even', note: 'Wo in even weken' },
+  { name: 'Monika van Dam', short: 'Monika', kantoor: 'Zwolle', color: '#f59e0b', uren: 36,
+    days: [1,2,4,5], altWednesday: 'odd', note: 'Wo in oneven weken' },
+  { name: 'Ellen van der Meulen Bosma', short: 'Ellen', kantoor: 'Zwolle', color: '#f97316', uren: 32,
+    days: [1,2,3,5], note: 'Vrij op donderdag', startDate: '2026-04-01' },
+  { name: 'Hester van Laar', short: 'Hester', kantoor: 'Zwolle', color: '#22c55e', uren: 24,
+    days: [1,2,3], note: 'Ma+Di+Wo' },
+  { name: 'Maurits', short: 'Maurits', kantoor: 'Zwolle', color: '#ef4444', uren: 16,
+    days: [4,5], note: 'Do+Vr', startDate: '2026-03-01',
+    changeDate: '2026-05-01', newDays: [1,2,4,5], newUren: 32, newNote: 'Vrij op woensdag' },
   { name: 'Lars de Vries', short: 'Lars', kantoor: 'Hattem', color: '#3b82f6', uren: 40,
     days: [1,2,3,4,5], note: '', startDate: '2026-04-01' },
   { name: 'Gerben', short: 'Gerben', kantoor: 'Hattem', color: '#8b5cf6', uren: 32,
     days: [1,2,4,5], note: 'Vrij op woensdag', startDate: '2026-03-01' },
-  { name: 'Henriëtte', short: 'Henriëtte', kantoor: 'Zwolle', color: '#3b82f6', uren: 30,
-    days: [1,2,3,4], note: 'Vrij op vrijdag' },
-  { name: 'Kyra Willems', short: 'Kyra', kantoor: 'Zwolle', color: '#8b5cf6', uren: 36,
-    days: [1,2,4,5], altWednesday: 'even', note: 'Werkt wo in even weken, vrij in oneven' },
-  { name: 'Monika van Dam', short: 'Monika', kantoor: 'Zwolle', color: '#f59e0b', uren: 36,
-    days: [1,2,4,5], altWednesday: 'odd', note: 'Werkt wo in oneven weken, vrij in even' },
-  { name: 'Ellen van der Meulen Bosma', short: 'Ellen', kantoor: 'Zwolle', color: '#f97316', uren: 32,
-    days: [1,2,3,5], note: 'Vrij op donderdag', startDate: '2026-04-01' },
-  { name: 'Hester van Laar', short: 'Hester', kantoor: 'Zwolle', color: '#22c55e', uren: 24,
-    days: [1,2,3], note: '' },
-  { name: 'Maurits', short: 'Maurits', kantoor: 'Zwolle', color: '#ef4444', uren: 16,
-    days: [4,5], note: 'Do+Vr', startDate: '2026-03-01',
-    changeDate: '2026-05-01', newDays: [1,2,4,5], newUren: 32, newNote: 'Vrij op woensdag' },
   { name: 'Manon Lemstra - Lans', short: 'Manon', kantoor: 'Hattem', color: '#22c55e', uren: 28,
     days: [1,2,3,4], note: 'Wo halve dag', endDate: '2026-06-01' },
   { name: 'Sjantien van Ommen', short: 'Sjantien', kantoor: 'Hattem', color: '#f97316', uren: 24,
-    days: [2,3,5], note: 'Vrij op maandag en donderdag', endDate: '2026-04-01' },
+    days: [2,3,5], note: 'Di+Wo+Vr', endDate: '2026-04-01' },
 ];
 
 const HOLIDAYS = [
@@ -340,26 +594,50 @@ const HOLIDAYS = [
   { date: '2026-04-27', name: 'Koningsdag' },
   { date: '2026-05-05', name: 'Bevrijdingsdag' },
   { date: '2026-05-14', name: 'Hemelvaartsdag' },
+  { date: '2026-05-15', name: 'Kantoorsluiting' },
   { date: '2026-05-25', name: 'Tweede Pinksterdag' },
   { date: '2026-12-25', name: 'Eerste Kerstdag' },
+  { date: '2026-12-26', name: 'Tweede Kerstdag' },
   { date: '2026-12-28', name: 'Bedrijfssluiting' },
   { date: '2026-12-29', name: 'Bedrijfssluiting' },
   { date: '2026-12-30', name: 'Bedrijfssluiting' },
   { date: '2026-12-31', name: 'Bedrijfssluiting' },
 ];
 
-function getHoliday(date) {
-  const dateStr = toLocalDateStr(date);
-  return HOLIDAYS.find(h => h.date === dateStr);
-}
+const VAKANTIE = [
+  { medewerker: 'Kyra', start: '2026-01-05', eind: '2026-01-09', type: 'Vakantie' },
+  { medewerker: 'Kyra', start: '2026-01-26', eind: '2026-01-30', type: 'Vakantie' },
+  { medewerker: 'Kyra', start: '2026-02-20', eind: '2026-02-20', type: 'Aangevraagd' },
+  { medewerker: 'Kyra', start: '2026-03-24', eind: '2026-03-24', type: 'Vrij (middag)' },
+  { medewerker: 'Kyra', start: '2026-03-26', eind: '2026-03-26', type: 'Verlofdag' },
+  { medewerker: 'Kyra', start: '2026-04-15', eind: '2026-04-15', type: 'Bijzonder verlof' },
+  { medewerker: 'Kyra', start: '2026-06-10', eind: '2026-06-24', type: 'Zomervakantie' },
+  { medewerker: 'Henriëtte', start: '2026-02-12', eind: '2026-02-12', type: 'Vrij' },
+  { medewerker: 'Henriëtte', start: '2026-04-20', eind: '2026-04-21', type: 'Vrij' },
+  { medewerker: 'Henriëtte', start: '2026-04-28', eind: '2026-04-29', type: 'Vrij' },
+  { medewerker: 'Hester', start: '2026-03-09', eind: '2026-03-09', type: 'Afwezig' },
+  { medewerker: 'Hester', start: '2026-04-07', eind: '2026-04-07', type: 'Vrij' },
+  { medewerker: 'Hester', start: '2026-04-20', eind: '2026-05-08', type: 'Vakantie' },
+  { medewerker: 'Gerben', start: '2026-04-16', eind: '2026-04-21', type: 'Vakantie' },
+  { medewerker: 'Gerben', start: '2026-06-22', eind: '2026-07-10', type: 'Zomervakantie' },
+  { medewerker: 'Manon', start: '2026-02-18', eind: '2026-02-18', type: 'Vrij' },
+  { medewerker: 'Manon', start: '2026-05-11', eind: '2026-05-11', type: 'Vrij' },
+];
 
-const DAY_NAMES = ['', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag'];
-const DAY_SHORT = ['', 'Ma', 'Di', 'Wo', 'Do', 'Vr'];
+const DAY_NAMES = ['Zondag','Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag','Zaterdag'];
+const DAY_SHORT = ['Zo','Ma','Di','Wo','Do','Vr','Za'];
 const MONTH_NAMES = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
 
 let currentView = 'week';
 let currentDate = new Date();
 let currentKantoor = 'alle';
+
+function toLocalDateStr(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
 function getWeekNumber(d) {
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -375,11 +653,14 @@ function getMonday(d) {
   return new Date(date.setDate(diff));
 }
 
-function toLocalDateStr(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+function getHoliday(date) {
+  const dateStr = toLocalDateStr(date);
+  return HOLIDAYS.find(h => h.date === dateStr);
+}
+
+function getVakantie(emp, date) {
+  const dateStr = toLocalDateStr(date);
+  return VAKANTIE.find(v => v.medewerker === emp.short && dateStr >= v.start && dateStr <= v.eind);
 }
 
 function isEmployeeActive(emp, date) {
@@ -414,20 +695,6 @@ function worksOnDay(emp, date) {
   return false;
 }
 
-function getWorkingEmployees(date) {
-  return EMPLOYEES.filter(emp => {
-    if (currentKantoor !== 'alle' && emp.kantoor !== currentKantoor) return false;
-    return worksOnDay(emp, date);
-  });
-}
-
-function getActiveEmployees(date) {
-  return EMPLOYEES.filter(emp => {
-    if (currentKantoor !== 'alle' && emp.kantoor !== currentKantoor) return false;
-    return isEmployeeActive(emp, date);
-  });
-}
-
 function isToday(date) {
   const t = new Date();
   return date.getDate() === t.getDate() && date.getMonth() === t.getMonth() && date.getFullYear() === t.getFullYear();
@@ -437,54 +704,133 @@ function formatDate(date) {
   return `${date.getDate()} ${MONTH_NAMES[date.getMonth()].substring(0,3)}`;
 }
 
-function renderLegend() {
-  const el = document.getElementById('legend');
-  const active = getActiveEmployees(currentDate);
-  el.innerHTML = active.map(e =>
-    `<div class="legend-item">
-      <div class="legend-dot" style="background:${e.color}"></div>
-      ${e.short}
-      <span class="legend-kantoor">${e.kantoor}</span>
-    </div>`
-  ).join('');
+function getInitials(name) {
+  return name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+}
+
+function getActiveEmployees(referenceDate) {
+  return EMPLOYEES.filter(emp => {
+    if (currentKantoor !== 'alle' && emp.kantoor !== currentKantoor) return false;
+    return true; // Show all for the kantoor, activity check per day
+  });
+}
+
+function renderDayCell(emp, date) {
+  const holiday = getHoliday(date);
+  const active = isEmployeeActive(emp, date);
+  const works = worksOnDay(emp, date);
+  const vakantie = works ? getVakantie(emp, date) : null;
+
+  if (!active) {
+    return `<div class="day-cell cell-inactive"><span class="material-symbols-outlined cell-icon">person_off</span></div>`;
+  }
+
+  if (holiday) {
+    return `<div class="day-cell cell-holiday">
+      <div class="cell-top">
+        <span class="cell-label">${holiday.name.length > 14 ? holiday.name.substring(0,12) + '…' : holiday.name}</span>
+        <span class="material-symbols-outlined cell-icon">celebration</span>
+      </div>
+      <span class="cell-sub">Feestdag</span>
+    </div>`;
+  }
+
+  if (vakantie) {
+    return `<div class="day-cell cell-vacation">
+      <div class="cell-top">
+        <span class="cell-label">${vakantie.type.length > 14 ? vakantie.type.substring(0,12) + '…' : vakantie.type}</span>
+        <span class="material-symbols-outlined cell-icon">flight</span>
+      </div>
+      <span class="cell-sub">Verlof</span>
+    </div>`;
+  }
+
+  if (works) {
+    let sub = '';
+    const dow = date.getDay();
+    if (dow === 3 && emp.altWednesday) sub = 'wisselwoensdag';
+    const { note } = getEmployeeDays(emp, date);
+    if (dow === 3 && note && note.includes('halve dag')) sub = 'halve dag';
+    return `<div class="day-cell cell-work">
+      <span class="cell-label">Aanwezig</span>
+      ${sub ? `<span class="cell-sub">${sub}</span>` : '<span class="cell-sub">Werkdag</span>'}
+    </div>`;
+  }
+
+  return `<div class="day-cell cell-off"><span class="material-symbols-outlined cell-icon">block</span></div>`;
 }
 
 function renderWeek() {
   const monday = getMonday(currentDate);
   const weekNum = getWeekNumber(monday);
-  document.getElementById('periodLabel').textContent =
-    `Week ${weekNum} — ${formatDate(monday)} - ${formatDate(new Date(monday.getTime() + 4*86400000))} ${monday.getFullYear()}`;
+  const friday = new Date(monday.getTime() + 4 * 86400000);
+  document.getElementById('periodLabel').textContent = `Week ${weekNum}`;
+  document.getElementById('periodSub').textContent = `/ ${formatDate(monday)} – ${formatDate(friday)} ${monday.getFullYear()}`;
 
-  let html = '<div class="week-grid">';
-  for (let i = 0; i < 5; i++) {
-    const day = new Date(monday.getTime() + i * 86400000);
-    const today = isToday(day) ? ' today' : '';
-    const holiday = getHoliday(day);
-    const workers = holiday ? [] : getWorkingEmployees(day);
-    html += `<div class="day-column${today}${holiday ? ' holiday' : ''}">
-      <div class="day-header">
-        ${DAY_NAMES[day.getDay()]}
-        <span class="day-date">${formatDate(day)}</span>
-      </div>
-      <div class="day-body">
-        ${holiday ? `<div class="holiday-label">${holiday.name}</div>` : ''}
-        ${!holiday ? workers.map(e => {
-          let note = '';
-          if (day.getDay() === 3 && e.altWednesday) note = 'wisselweek';
-          const { note: empNote } = getEmployeeDays(e, day);
-          if (day.getDay() === 3 && empNote && empNote.includes('halve dag')) note = 'halve dag';
-          return `<div class="person-chip" style="background:${e.color}15">
-            <div class="person-dot" style="background:${e.color}"></div>
-            ${e.short}
-            <span class="legend-kantoor">${e.kantoor}</span>
-            ${note ? `<span class="person-note">${note}</span>` : ''}
-          </div>`;
-        }).join('') : ''}
-        ${!holiday && workers.length === 0 ? '<div style="color:var(--muted);font-size:13px;padding:8px">Niemand aanwezig</div>' : ''}
-      </div>
+  const kantoren = currentKantoor === 'alle' ? ['Zwolle', 'Hattem'] : [currentKantoor];
+  let html = '';
+
+  kantoren.forEach(kantoor => {
+    const emps = EMPLOYEES.filter(e => e.kantoor === kantoor);
+    // Only show kantoor if it has employees visible in this week
+    const anyActive = emps.some(e => {
+      for (let i = 0; i < 5; i++) {
+        const day = new Date(monday.getTime() + i * 86400000);
+        if (isEmployeeActive(e, day)) return true;
+      }
+      return false;
+    });
+    if (!anyActive) return;
+
+    html += `<div class="section-divider">
+      <div class="line"></div>
+      <span class="section-label">${kantoor}</span>
+      <div class="line"></div>
     </div>`;
-  }
-  html += '</div>';
+
+    html += '<div class="roster-grid">';
+    // Header row
+    html += '<div></div>';
+    for (let i = 0; i < 5; i++) {
+      const day = new Date(monday.getTime() + i * 86400000);
+      const today = isToday(day) ? ' today-header' : '';
+      html += `<div class="grid-header${today}">
+        ${DAY_SHORT[day.getDay()]}
+        <span class="header-date">${day.getDate()}</span>
+      </div>`;
+    }
+
+    // Employee rows
+    emps.forEach(emp => {
+      // Check if employee is active at any point this week
+      let anyActiveDay = false;
+      for (let i = 0; i < 5; i++) {
+        const day = new Date(monday.getTime() + i * 86400000);
+        if (isEmployeeActive(emp, day)) { anyActiveDay = true; break; }
+      }
+      if (!anyActiveDay) return;
+
+      const { note } = getEmployeeDays(emp, monday);
+      const uren = emp.changeDate && toLocalDateStr(monday) >= emp.changeDate ? (emp.newUren || emp.uren) : emp.uren;
+      html += `<div class="emp-card">
+        <div class="emp-avatar" style="background:${emp.color}20;color:${emp.color}">
+          ${getInitials(emp.short)}
+        </div>
+        <div>
+          <div class="emp-name">${emp.short}</div>
+          <div class="emp-meta">${uren}u contract${note ? ' · ' + note : ''}</div>
+        </div>
+      </div>`;
+
+      for (let i = 0; i < 5; i++) {
+        const day = new Date(monday.getTime() + i * 86400000);
+        html += renderDayCell(emp, day);
+      }
+    });
+
+    html += '</div>';
+  });
+
   document.getElementById('calendar').innerHTML = html;
 }
 
@@ -492,26 +838,21 @@ function renderMonth() {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   document.getElementById('periodLabel').textContent = `${MONTH_NAMES[month]} ${year}`;
+  document.getElementById('periodSub').textContent = '';
 
-  const firstDay = new Date(year, month, 1);
-  let startDow = firstDay.getDay();
-  if (startDow === 0) startDow = 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+  let startDow = new Date(year, month, 1).getDay();
+  if (startDow === 0) startDow = 7;
 
   let html = '<div class="month-grid">';
   for (let d = 1; d <= 5; d++) {
     html += `<div class="month-header-cell">${DAY_SHORT[d]}</div>`;
   }
 
-  let currentDow = 1;
   let dayNum = 1;
-  // Skip to first weekday
-  while (currentDow < startDow && startDow <= 5) {
-    html += `<div class="month-day-cell empty"></div>`;
-    currentDow++;
-  }
-  if (startDow > 5) {
-    // Month starts on weekend, skip to Monday
+  if (startDow <= 5) {
+    for (let i = 1; i < startDow; i++) html += '<div class="month-day-cell empty"></div>';
+  } else {
     dayNum = 1 + (8 - startDow);
   }
 
@@ -521,27 +862,27 @@ function renderMonth() {
     if (dow >= 1 && dow <= 5) {
       const today = isToday(date) ? ' today' : '';
       const holiday = getHoliday(date);
-      const workers = holiday ? [] : getWorkingEmployees(date);
+      const workers = EMPLOYEES.filter(e => {
+        if (currentKantoor !== 'alle' && e.kantoor !== currentKantoor) return false;
+        return worksOnDay(e, date);
+      });
       html += `<div class="month-day-cell${today}${holiday ? ' holiday' : ''}">
         <div class="month-day-num">${dayNum}</div>
         ${holiday ? `<div class="holiday-label-sm">${holiday.name}</div>` : ''}
-        ${!holiday ? workers.map(e => `<div class="month-person">
-          <div class="month-dot" style="background:${e.color}"></div>
-          <span>${e.short}</span>
-        </div>`).join('') : ''}
+        ${!holiday ? workers.map(e => {
+          const v = getVakantie(e, date);
+          if (v) return `<div class="month-person vacation"><div class="month-dot" style="background:${e.color}"></div><span>✈ ${e.short}</span></div>`;
+          return `<div class="month-person"><div class="month-dot" style="background:${e.color}"></div><span>${e.short}</span></div>`;
+        }).join('') : ''}
       </div>`;
     }
     dayNum++;
   }
-  // Fill remaining cells
   const lastDay = new Date(year, month, daysInMonth);
   let lastDow = lastDay.getDay();
   if (lastDow >= 1 && lastDow < 5) {
-    for (let i = lastDow + 1; i <= 5; i++) {
-      html += `<div class="month-day-cell empty"></div>`;
-    }
+    for (let i = lastDow + 1; i <= 5; i++) html += '<div class="month-day-cell empty"></div>';
   }
-
   html += '</div>';
   document.getElementById('calendar').innerHTML = html;
 }
@@ -549,49 +890,42 @@ function renderMonth() {
 function renderYear() {
   const year = currentDate.getFullYear();
   document.getElementById('periodLabel').textContent = `${year}`;
+  document.getElementById('periodSub').textContent = '';
 
   let html = '<div class="year-grid">';
   for (let m = 0; m < 12; m++) {
-    html += `<div class="year-month-card">
-      <div class="year-month-title">${MONTH_NAMES[m]}</div>
-      <div class="year-mini-grid">`;
-    for (let d = 1; d <= 5; d++) {
-      html += `<div class="year-mini-header">${DAY_SHORT[d]}</div>`;
-    }
+    html += `<div class="year-month-card"><div class="year-month-title">${MONTH_NAMES[m]}</div><div class="year-mini-grid">`;
+    for (let d = 1; d <= 5; d++) html += `<div class="year-mini-header">${DAY_SHORT[d]}</div>`;
     const daysInMonth = new Date(year, m + 1, 0).getDate();
     const firstDow = new Date(year, m, 1).getDay() || 7;
-
-    // Add empty cells before first weekday
-    if (firstDow <= 5) {
-      for (let i = 1; i < firstDow; i++) {
-        html += `<div class="year-mini-cell"></div>`;
-      }
-    }
+    if (firstDow <= 5) { for (let i = 1; i < firstDow; i++) html += '<div class="year-mini-cell"></div>'; }
 
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, m, day);
       const dow = date.getDay();
       if (dow >= 1 && dow <= 5) {
         const holiday = getHoliday(date);
-        const workers = holiday ? [] : getWorkingEmployees(date);
+        const workers = EMPLOYEES.filter(e => {
+          if (currentKantoor !== 'alle' && e.kantoor !== currentKantoor) return false;
+          return worksOnDay(e, date);
+        });
         const today = isToday(date) ? ' today' : '';
-        const count = workers.length;
+        const onVac = workers.filter(e => getVakantie(e, date));
+        const atWork = workers.filter(e => !getVakantie(e, date));
+        const tooltipParts = [];
+        if (atWork.length) tooltipParts.push(atWork.map(e => e.short).join(', '));
+        if (onVac.length) tooltipParts.push('✈ ' + onVac.map(e => e.short).join(', '));
+        const tooltip = holiday ? holiday.name : (tooltipParts.join(' · ') || 'Niemand');
+        const count = atWork.length;
         const opacity = holiday ? 0 : Math.min(count / 8, 1);
-        const tooltip = holiday ? holiday.name : (workers.map(e => e.short).join(', ') || 'Niemand');
-        html += `<div class="year-mini-cell${today}${holiday ? ' holiday' : ''}">
-          ${day}
-          <div class="bar-indicator" style="background:${holiday ? 'rgba(239,68,68,0.3)' : `rgba(59,130,246,${opacity})`}"></div>
+        html += `<div class="year-mini-cell${today}${holiday ? ' holiday' : ''}">${day}
+          <div class="bar-indicator" style="background:${holiday ? 'rgba(239,68,68,0.3)' : `rgba(0,94,63,${opacity})`}"></div>
           <div class="year-tooltip">${day} ${MONTH_NAMES[m].substring(0,3)}: ${tooltip}</div>
         </div>`;
       }
     }
-    // Fill remaining
     const lastDow = new Date(year, m, daysInMonth).getDay();
-    if (lastDow >= 1 && lastDow < 5) {
-      for (let i = lastDow + 1; i <= 5; i++) {
-        html += `<div class="year-mini-cell"></div>`;
-      }
-    }
+    if (lastDow >= 1 && lastDow < 5) { for (let i = lastDow + 1; i <= 5; i++) html += '<div class="year-mini-cell"></div>'; }
     html += '</div></div>';
   }
   html += '</div>';
@@ -599,7 +933,6 @@ function renderYear() {
 }
 
 function render() {
-  renderLegend();
   if (currentView === 'week') renderWeek();
   else if (currentView === 'month') renderMonth();
   else renderYear();
@@ -607,7 +940,7 @@ function render() {
 
 function setView(view) {
   currentView = view;
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.view-tabs .nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('btn' + view.charAt(0).toUpperCase() + view.slice(1)).classList.add('active');
   render();
 }
@@ -621,22 +954,14 @@ function setKantoor(k) {
 }
 
 function navigate(dir) {
-  if (currentView === 'week') {
-    currentDate.setDate(currentDate.getDate() + dir * 7);
-  } else if (currentView === 'month') {
-    currentDate.setMonth(currentDate.getMonth() + dir);
-  } else {
-    currentDate.setFullYear(currentDate.getFullYear() + dir);
-  }
+  if (currentView === 'week') currentDate.setDate(currentDate.getDate() + dir * 7);
+  else if (currentView === 'month') currentDate.setMonth(currentDate.getMonth() + dir);
+  else currentDate.setFullYear(currentDate.getFullYear() + dir);
   render();
 }
 
-function goToday() {
-  currentDate = new Date();
-  render();
-}
+function goToday() { currentDate = new Date(); render(); }
 
-// Keyboard navigation
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft') navigate(-1);
   if (e.key === 'ArrowRight') navigate(1);
