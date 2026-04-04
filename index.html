@@ -598,8 +598,9 @@
 
 <script>
 const EMPLOYEES = [
-  { name: 'Henriëtte', short: 'Henriëtte', kantoor: 'Zwolle', color: '#3b82f6', uren: 30,
-    days: [1,2,3,4], note: 'Vrij op vrijdag' },
+  { name: 'Alexander', short: 'Alexander', kantoor: 'Zwolle', color: '#0ea5e9', uren: 40,
+    days: [1,2,3,4,5], note: 'Di in Hattem',
+    kantoorPerDay: { 1: 'Zwolle', 2: 'Hattem', 3: 'Zwolle', 4: 'Zwolle', 5: 'Zwolle' } },
   { name: 'Kyra Willems', short: 'Kyra', kantoor: 'Zwolle', color: '#8b5cf6', uren: 36,
     days: [1,2,4,5], altWednesday: 'even', note: 'Wo in even weken' },
   { name: 'Monika van Dam', short: 'Monika', kantoor: 'Zwolle', color: '#f59e0b', uren: 36,
@@ -611,6 +612,8 @@ const EMPLOYEES = [
   { name: 'Maurits', short: 'Maurits', kantoor: 'Zwolle', color: '#ef4444', uren: 16,
     days: [4,5], note: 'Do+Vr', startDate: '2026-03-01',
     changeDate: '2026-05-01', newDays: [1,2,4,5], newUren: 32, newNote: 'Vrij op woensdag' },
+  { name: 'Henriëtte', short: 'Henriëtte', kantoor: 'Zwolle', color: '#3b82f6', uren: 30,
+    days: [1,2,3,4], note: 'Vrij op vrijdag' },
   { name: 'Lars de Vries', short: 'Lars', kantoor: 'Hattem', color: '#3b82f6', uren: 40,
     days: [1,2,3,4,5], note: '', startDate: '2026-04-01' },
   { name: 'Gerben', short: 'Gerben', kantoor: 'Hattem', color: '#8b5cf6', uren: 32,
@@ -742,11 +745,16 @@ function getInitials(name) {
   return name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
 }
 
-function getActiveEmployees(referenceDate) {
-  return EMPLOYEES.filter(emp => {
-    if (currentKantoor !== 'alle' && emp.kantoor !== currentKantoor) return false;
-    return true; // Show all for the kantoor, activity check per day
-  });
+function getKantoorForDay(emp, date) {
+  const dow = date.getDay();
+  if (emp.kantoorPerDay && emp.kantoorPerDay[dow]) return emp.kantoorPerDay[dow];
+  return emp.kantoor;
+}
+
+function empBelongsToKantoor(emp, kantoor, dates) {
+  // Employee belongs to a kantoor section if they work there on any of the given dates
+  if (!dates) return emp.kantoor === kantoor || (emp.kantoorPerDay && Object.values(emp.kantoorPerDay).includes(kantoor));
+  return dates.some(d => getKantoorForDay(emp, d) === kantoor);
 }
 
 function renderDayCell(emp, date) {
@@ -815,16 +823,15 @@ function renderWeek() {
   const kantoren = currentKantoor === 'alle' ? ['Zwolle', 'Hattem'] : [currentKantoor];
   let html = '';
 
+  // Build weekdays array
+  const weekDays = [];
+  for (let i = 0; i < 5; i++) weekDays.push(new Date(monday.getTime() + i * 86400000));
+
   kantoren.forEach(kantoor => {
-    const emps = EMPLOYEES.filter(e => e.kantoor === kantoor);
-    // Only show kantoor if it has employees visible in this week
-    const anyActive = emps.some(e => {
-      for (let i = 0; i < 5; i++) {
-        const day = new Date(monday.getTime() + i * 86400000);
-        if (isEmployeeActive(e, day)) return true;
-      }
-      return false;
-    });
+    // Find employees that belong to this kantoor on any day this week
+    const emps = EMPLOYEES.filter(e => empBelongsToKantoor(e, kantoor, weekDays));
+    // Only show if any employee is active this week
+    const anyActive = emps.some(e => weekDays.some(d => isEmployeeActive(e, d)));
     if (!anyActive) return;
 
     html += `<div class="section-divider">
@@ -834,25 +841,17 @@ function renderWeek() {
     </div>`;
 
     html += '<div class="roster-grid">';
-    // Header row
     html += '<div></div>';
-    for (let i = 0; i < 5; i++) {
-      const day = new Date(monday.getTime() + i * 86400000);
+    weekDays.forEach(day => {
       const today = isToday(day) ? ' today-header' : '';
       html += `<div class="grid-header${today}">
         ${DAY_SHORT[day.getDay()]}
         <span class="header-date">${day.getDate()}</span>
       </div>`;
-    }
+    });
 
-    // Employee rows
     emps.forEach(emp => {
-      // Check if employee is active at any point this week
-      let anyActiveDay = false;
-      for (let i = 0; i < 5; i++) {
-        const day = new Date(monday.getTime() + i * 86400000);
-        if (isEmployeeActive(emp, day)) { anyActiveDay = true; break; }
-      }
+      let anyActiveDay = weekDays.some(d => isEmployeeActive(emp, d));
       if (!anyActiveDay) return;
 
       const { note } = getEmployeeDays(emp, monday);
@@ -867,10 +866,16 @@ function renderWeek() {
         </div>
       </div>`;
 
-      for (let i = 0; i < 5; i++) {
-        const day = new Date(monday.getTime() + i * 86400000);
-        html += renderDayCell(emp, day);
-      }
+      weekDays.forEach(day => {
+        // If employee has kantoorPerDay, show cell only when at this kantoor
+        const dayKantoor = getKantoorForDay(emp, day);
+        if (dayKantoor !== kantoor) {
+          // Show as "other location" cell
+          html += `<div class="day-cell cell-off" title="${emp.short} is in ${dayKantoor}"><span class="material-symbols-outlined cell-icon" style="font-size:14px;color:#94a3b8">location_on</span></div>`;
+        } else {
+          html += renderDayCell(emp, day);
+        }
+      });
     });
 
     html += '</div>';
