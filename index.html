@@ -1030,7 +1030,7 @@ const VERLOF_API_URL = window.VERLOF_API_URL || 'https://script.google.com/macro
 async function syncVerlof() {
   if (!VERLOF_API_URL) return;
   try {
-    const res = await fetch(VERLOF_API_URL + '/verlof', { cache: 'no-store' });
+    const res = await fetch(VERLOF_API_URL, { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     if (!data.verlof || !Array.isArray(data.verlof)) throw new Error('ongeldig antwoord');
