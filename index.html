@@ -547,6 +547,7 @@
         <h1>Admono Werkrooster</h1>
         <span class="brand-sub">Nicole Bosch Makelaardij</span>
       </div>
+      <span id="syncBadge" style="margin-left:16px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;background:#e5e7eb;color:#374151;">Synchroniseren…</span>
     </div>
     <div class="kantoor-tabs">
       <button class="kantoor-tab active" onclick="setKantoor('alle')">Alle</button>
@@ -641,7 +642,8 @@ const HOLIDAYS = [
   { date: '2026-12-31', name: 'Bedrijfssluiting' },
 ];
 
-const VAKANTIE = [
+// Fallback verlofdata — wordt bij laden overschreven door API (als beschikbaar)
+let VAKANTIE = [
   { medewerker: 'Kyra', start: '2026-01-05', eind: '2026-01-09', type: 'Vakantie' },
   { medewerker: 'Kyra', start: '2026-01-26', eind: '2026-01-30', type: 'Vakantie' },
   { medewerker: 'Kyra', start: '2026-02-20', eind: '2026-02-20', type: 'Aangevraagd' },
@@ -1018,6 +1020,47 @@ document.addEventListener('keydown', e => {
 });
 
 render();
+
+// ============================================================
+// NOTION SYNC — haal verlofdata live op vanuit Railway API
+// ============================================================
+// Pas deze URL aan naar jouw Railway deployment (https://xxxxx.up.railway.app)
+const VERLOF_API_URL = window.VERLOF_API_URL || 'https://script.google.com/macros/s/AKfycbwkMs7RAIz98VFBa1_3fkudmbBrXx0vsf7LIFCz75yB4Y2BDYIEtVGHWRUZzDEZIkgkCA/exec';
+
+async function syncVerlof() {
+  if (!VERLOF_API_URL) return;
+  try {
+    const res = await fetch(VERLOF_API_URL + '/verlof', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (!data.verlof || !Array.isArray(data.verlof)) throw new Error('ongeldig antwoord');
+    VAKANTIE = data.verlof.map(v => ({
+      medewerker: v.medewerker,
+      start: v.start,
+      eind: v.eind || v.start,
+      type: v.type + (v.status === 'Aangevraagd' ? ' (aangevraagd)' : ''),
+    }));
+    console.log('[verlof] synced', VAKANTIE.length, 'records van Notion');
+    render();
+    const badge = document.getElementById('syncBadge');
+    if (badge) {
+      badge.textContent = 'Notion · ' + VAKANTIE.length + ' posten';
+      badge.style.background = '#dcfce7';
+      badge.style.color = '#166534';
+    }
+  } catch (err) {
+    console.warn('[verlof] sync mislukt, fallback naar lokale data:', err.message);
+    const badge = document.getElementById('syncBadge');
+    if (badge) {
+      badge.textContent = 'Lokale data (geen sync)';
+      badge.style.background = '#fee2e2';
+      badge.style.color = '#991b1b';
+    }
+  }
+}
+syncVerlof();
+// Ververs elke 5 minuten
+setInterval(syncVerlof, 5 * 60 * 1000);
 </script>
 </body>
 </html>
