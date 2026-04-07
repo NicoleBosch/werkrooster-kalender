@@ -645,7 +645,7 @@ const HOLIDAYS = [
 // Fallback verlofdata — wordt bij laden overschreven door API (als beschikbaar)
 let VAKANTIE = [
   { medewerker: 'Kyra', start: '2026-02-20', eind: '2026-02-20', type: 'Aangevraagd', dagen: 1 },
-  { medewerker: 'Kyra', start: '2026-03-24', eind: '2026-03-24', type: 'Vakantie', dagen: 0.5 },
+  { medewerker: 'Kyra', start: '2026-03-24', eind: '2026-03-24', type: 'Vakantie', dagen: 0.5, toelichting: 'Vrij (middag)' },
   { medewerker: 'Kyra', start: '2026-03-26', eind: '2026-03-26', type: 'Verlofdag', dagen: 1 },
   { medewerker: 'Kyra', start: '2026-04-15', eind: '2026-04-15', type: 'Bijzonder verlof', dagen: 1 },
   { medewerker: 'Kyra', start: '2026-06-10', eind: '2026-06-24', type: 'Zomervakantie', dagen: 10 },
@@ -657,7 +657,7 @@ let VAKANTIE = [
   { medewerker: 'Hester', start: '2026-04-20', eind: '2026-05-08', type: 'Vakantie', dagen: 7 },
   { medewerker: 'Gerben', start: '2026-04-16', eind: '2026-04-21', type: 'Vakantie', dagen: 4 },
   { medewerker: 'Gerben', start: '2026-06-22', eind: '2026-07-10', type: 'Zomervakantie', dagen: 12 },
-  { medewerker: 'Manon', start: '2026-02-18', eind: '2026-02-18', type: 'Vrij', dagen: 0.5 },
+  { medewerker: 'Manon', start: '2026-02-18', eind: '2026-02-18', type: 'Vrij', dagen: 0.5, toelichting: 'School Lenn (ochtend)' },
   { medewerker: 'Manon', start: '2026-05-11', eind: '2026-05-11', type: 'Vrij', dagen: 1 },
 ];
 
@@ -778,13 +778,26 @@ function renderDayCell(emp, date) {
   }
 
   if (vakantie) {
-    // Halve dag verlof: split cel (verlof + werk)
+    // Halve dag verlof: paarse split cel
     if (vakantie.dagen === 0.5) {
-      return `<div class="day-cell cell-half">
-        <span class="cell-label">${vakantie.type.length > 14 ? vakantie.type.substring(0,12) + '…' : vakantie.type}</span>
-        <span class="cell-sub">Halve dag verlof</span>
-        <div class="half-divider"></div>
-        <span class="half-bottom" style="color: var(--primary);">Aanwezig</span>
+      const toel = (vakantie.toelichting || '').toLowerCase();
+      const middagVrij = toel.includes('middag');
+      const ochtendVrij = toel.includes('ochtend');
+      // Default: middag vrij als niet gespecificeerd
+      const vrijPeriode = ochtendVrij ? 'ochtend' : 'middag';
+      const topLabel = vrijPeriode === 'middag' ? 'Ochtend' : 'Middag';
+      const topSub = 'Aanwezig';
+      const bottomLabel = vrijPeriode === 'middag' ? 'Middag vrij' : 'Ochtend vrij';
+      return `<div class="day-cell cell-vacation" style="padding: 0;">
+        <div style="padding: 6px 8px 2px; flex: 1;">
+          <span class="cell-label" style="color: var(--primary); font-size: 11px;">${topLabel}</span>
+          <span class="cell-sub" style="color: var(--primary);">${topSub}</span>
+        </div>
+        <div style="border-top: 1.5px dashed var(--vacation-border); margin: 0 6px;"></div>
+        <div style="padding: 2px 8px 6px; flex: 1; background: var(--vacation-light); border-radius: 0 0 10px 10px;">
+          <span class="cell-label" style="font-size: 11px;">${bottomLabel}</span>
+          <span class="cell-sub">${vakantie.type}</span>
+        </div>
       </div>`;
     }
     return `<div class="day-cell cell-vacation">
@@ -1047,6 +1060,7 @@ async function syncVerlof() {
       eind: v.eind || v.start,
       type: v.type + (v.status === 'Aangevraagd' ? ' (aangevraagd)' : ''),
       dagen: v.aantal_dagen || null,
+      toelichting: v.toelichting || '',
     }));
     console.log('[verlof] synced', VAKANTIE.length, 'records van Notion');
     render();
