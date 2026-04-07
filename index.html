@@ -644,23 +644,21 @@ const HOLIDAYS = [
 
 // Fallback verlofdata — wordt bij laden overschreven door API (als beschikbaar)
 let VAKANTIE = [
-  { medewerker: 'Kyra', start: '2026-01-05', eind: '2026-01-09', type: 'Vakantie' },
-  { medewerker: 'Kyra', start: '2026-01-26', eind: '2026-01-30', type: 'Vakantie' },
-  { medewerker: 'Kyra', start: '2026-02-20', eind: '2026-02-20', type: 'Aangevraagd' },
-  { medewerker: 'Kyra', start: '2026-03-24', eind: '2026-03-24', type: 'Vrij (middag)' },
-  { medewerker: 'Kyra', start: '2026-03-26', eind: '2026-03-26', type: 'Verlofdag' },
-  { medewerker: 'Kyra', start: '2026-04-15', eind: '2026-04-15', type: 'Bijzonder verlof' },
-  { medewerker: 'Kyra', start: '2026-06-10', eind: '2026-06-24', type: 'Zomervakantie' },
-  { medewerker: 'Henriëtte', start: '2026-02-12', eind: '2026-02-12', type: 'Vrij' },
-  { medewerker: 'Henriëtte', start: '2026-04-20', eind: '2026-04-21', type: 'Vrij' },
-  { medewerker: 'Henriëtte', start: '2026-04-28', eind: '2026-04-29', type: 'Vrij' },
-  { medewerker: 'Hester', start: '2026-03-09', eind: '2026-03-09', type: 'Afwezig' },
-  { medewerker: 'Hester', start: '2026-04-07', eind: '2026-04-07', type: 'Vrij' },
-  { medewerker: 'Hester', start: '2026-04-20', eind: '2026-05-08', type: 'Vakantie' },
-  { medewerker: 'Gerben', start: '2026-04-16', eind: '2026-04-21', type: 'Vakantie' },
-  { medewerker: 'Gerben', start: '2026-06-22', eind: '2026-07-10', type: 'Zomervakantie' },
-  { medewerker: 'Manon', start: '2026-02-18', eind: '2026-02-18', type: 'Vrij' },
-  { medewerker: 'Manon', start: '2026-05-11', eind: '2026-05-11', type: 'Vrij' },
+  { medewerker: 'Kyra', start: '2026-02-20', eind: '2026-02-20', type: 'Aangevraagd', dagen: 1 },
+  { medewerker: 'Kyra', start: '2026-03-24', eind: '2026-03-24', type: 'Vakantie', dagen: 0.5 },
+  { medewerker: 'Kyra', start: '2026-03-26', eind: '2026-03-26', type: 'Verlofdag', dagen: 1 },
+  { medewerker: 'Kyra', start: '2026-04-15', eind: '2026-04-15', type: 'Bijzonder verlof', dagen: 1 },
+  { medewerker: 'Kyra', start: '2026-06-10', eind: '2026-06-24', type: 'Zomervakantie', dagen: 10 },
+  { medewerker: 'Henriëtte', start: '2026-02-12', eind: '2026-02-12', type: 'Vrij', dagen: 1 },
+  { medewerker: 'Henriëtte', start: '2026-04-20', eind: '2026-04-21', type: 'Vrij', dagen: 2 },
+  { medewerker: 'Henriëtte', start: '2026-04-28', eind: '2026-04-29', type: 'Vrij', dagen: 2 },
+  { medewerker: 'Hester', start: '2026-03-09', eind: '2026-03-09', type: 'Afwezig', dagen: 1 },
+  { medewerker: 'Hester', start: '2026-04-07', eind: '2026-04-07', type: 'Vrij', dagen: 1 },
+  { medewerker: 'Hester', start: '2026-04-20', eind: '2026-05-08', type: 'Vakantie', dagen: 7 },
+  { medewerker: 'Gerben', start: '2026-04-16', eind: '2026-04-21', type: 'Vakantie', dagen: 4 },
+  { medewerker: 'Gerben', start: '2026-06-22', eind: '2026-07-10', type: 'Zomervakantie', dagen: 12 },
+  { medewerker: 'Manon', start: '2026-02-18', eind: '2026-02-18', type: 'Vrij', dagen: 0.5 },
+  { medewerker: 'Manon', start: '2026-05-11', eind: '2026-05-11', type: 'Vrij', dagen: 1 },
 ];
 
 const DAY_NAMES = ['Zondag','Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag','Zaterdag'];
@@ -780,6 +778,15 @@ function renderDayCell(emp, date) {
   }
 
   if (vakantie) {
+    // Halve dag verlof: split cel (verlof + werk)
+    if (vakantie.dagen === 0.5) {
+      return `<div class="day-cell cell-half">
+        <span class="cell-label">${vakantie.type.length > 14 ? vakantie.type.substring(0,12) + '…' : vakantie.type}</span>
+        <span class="cell-sub">Halve dag verlof</span>
+        <div class="half-divider"></div>
+        <span class="half-bottom" style="color: var(--primary);">Aanwezig</span>
+      </div>`;
+    }
     return `<div class="day-cell cell-vacation">
       <div class="cell-top">
         <span class="cell-label">${vakantie.type.length > 14 ? vakantie.type.substring(0,12) + '…' : vakantie.type}</span>
@@ -1039,6 +1046,7 @@ async function syncVerlof() {
       start: v.start,
       eind: v.eind || v.start,
       type: v.type + (v.status === 'Aangevraagd' ? ' (aangevraagd)' : ''),
+      dagen: v.aantal_dagen || null,
     }));
     console.log('[verlof] synced', VAKANTIE.length, 'records van Notion');
     render();
