@@ -662,6 +662,8 @@ let VAKANTIE = [
   { medewerker: 'Hester', start: '2026-04-20', eind: '2026-05-08', type: 'Vakantie', dagen: 7 },
   { medewerker: 'Gerben', start: '2026-04-16', eind: '2026-04-21', type: 'Vakantie', dagen: 4 },
   { medewerker: 'Gerben', start: '2026-06-22', eind: '2026-07-10', type: 'Zomervakantie', dagen: 12 },
+  { medewerker: 'Corine', start: '2026-07-20', eind: '2026-08-02', type: 'Zomervakantie', dagen: 8 },
+  { medewerker: 'Leonie', start: '2026-08-21', eind: '2026-08-23', type: 'Vakantie', dagen: 1 },
   { medewerker: 'Manon', start: '2026-02-18', eind: '2026-02-18', type: 'Vrij', dagen: 0.5, dagdeel: 'Ochtend' },
   { medewerker: 'Manon', start: '2026-05-11', eind: '2026-05-11', type: 'Vrij', dagen: 1 },
 ];
@@ -669,6 +671,16 @@ let VAKANTIE = [
 const DAY_NAMES = ['Zondag','Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag','Zaterdag'];
 const DAY_SHORT = ['Zo','Ma','Di','Wo','Do','Vr','Za'];
 const MONTH_NAMES = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
+const PRIVATE_VERLOF_TYPES = new Set(['Ziekte', 'Zwangerschapsverlof', 'Bevallingsverlof', 'Ouderschapsverlof']);
+const API_NAME_MAP = {
+  'Manon Lemstra - Lans': 'Manon',
+  'Hester van Laar': 'Hester',
+  'Kyra Willems': 'Kyra',
+  'Ellen van der Meulen Bosma': 'Ellen',
+  'Sjantien van Ommen': 'Sjantien',
+  'Lars de Vries': 'Lars',
+  'Corine Knol': 'Corine',
+};
 
 let currentView = 'week';
 let currentDate = new Date();
@@ -1069,8 +1081,8 @@ async function syncVerlof() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     if (!data.verlof || !Array.isArray(data.verlof)) throw new Error('ongeldig antwoord');
-    VAKANTIE = data.verlof.map(v => ({
-      medewerker: v.medewerker,
+    VAKANTIE = data.verlof.filter(v => !PRIVATE_VERLOF_TYPES.has(v.type)).map(v => ({
+      medewerker: API_NAME_MAP[v.medewerker] || v.medewerker,
       start: v.start,
       eind: v.eind || v.start,
       type: v.type + (v.status === 'Aangevraagd' ? ' (aangevraagd)' : ''),
