@@ -612,7 +612,10 @@ let EMPLOYEES = [
     days: [1,2,3], note: 'Ma+Di+Wo' },
   { name: 'Maurits', short: 'Maurits', kantoor: 'Zwolle', color: '#ef4444', uren: 16,
     days: [4,5], note: 'Do+Vr', startDate: '2026-03-01',
-    changeDate: '2026-05-01', newDays: [1,2,4,5], newUren: 32, newNote: 'Vrij op woensdag' },
+    changes: [
+      { date: '2026-05-01', days: [1,2,4,5], uren: 32, note: 'Vrij op woensdag' },
+      { date: '2026-07-06', days: [2,3,4,5], uren: 32, note: 'Vrij op maandag' },
+    ] },
   { name: 'Leonie', short: 'Leonie', kantoor: 'Zwolle', color: '#14b8a6', uren: 32,
     days: [1,2,4,5], note: 'Vrij op woensdag', startDate: '2026-08-01' },
   { name: 'Henriëtte', short: 'Henriëtte', kantoor: 'Zwolle', color: '#3b82f6', uren: 30,
@@ -784,14 +787,32 @@ function isEmployeeActive(emp, date) {
 }
 
 function getEmployeeDays(emp, date) {
+  const schedule = getEmployeeSchedule(emp, date);
+  return { days: schedule.days, note: schedule.note };
+}
+
+function getEmployeeSchedule(emp, date) {
   const dateStr = toLocalDateStr(date);
   let days = emp.days;
   let note = emp.note;
+  let uren = emp.uren;
+
   if (emp.changeDate && dateStr >= emp.changeDate) {
     days = emp.newDays || days;
     note = emp.newNote || note;
+    uren = emp.newUren || uren;
   }
-  return { days, note };
+
+  if (Array.isArray(emp.changes)) {
+    emp.changes.forEach(change => {
+      if (!change.date || dateStr < change.date) return;
+      days = change.days || days;
+      note = change.note || note;
+      uren = Number.isFinite(change.uren) ? change.uren : uren;
+    });
+  }
+
+  return { days, note, uren };
 }
 
 function worksOnDay(emp, date) {
@@ -962,8 +983,9 @@ function renderWeek() {
       let anyActiveDay = weekDays.some(d => isEmployeeActive(emp, d));
       if (!anyActiveDay) return;
 
-      const { note } = getEmployeeDays(emp, monday);
-      const uren = emp.changeDate && toLocalDateStr(monday) >= emp.changeDate ? (emp.newUren || emp.uren) : emp.uren;
+      const schedule = getEmployeeSchedule(emp, monday);
+      const note = schedule.note;
+      const uren = schedule.uren;
       html += `<div class="emp-card">
         <div class="emp-avatar" style="background:${emp.color}20;color:${emp.color}">
           ${getInitials(emp.short)}
