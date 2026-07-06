@@ -598,7 +598,7 @@
 </div>
 
 <script>
-const EMPLOYEES = [
+let EMPLOYEES = [
   { name: 'Alexander', short: 'Alexander', kantoor: 'Zwolle', color: '#0ea5e9', uren: 40,
     days: [1,2,3,4,5], note: 'Di in Hattem',
     kantoorPerDay: { 1: 'Zwolle', 2: 'Hattem', 3: 'Zwolle', 4: 'Zwolle', 5: 'Zwolle' } },
@@ -621,16 +621,11 @@ const EMPLOYEES = [
     days: [1,2,3,4,5], note: '', startDate: '2026-04-01' },
   { name: 'Gerben', short: 'Gerben', kantoor: 'Hattem', color: '#8b5cf6', uren: 32,
     days: [1,2,4,5], note: 'Vrij op woensdag', startDate: '2026-03-01' },
-  { name: 'Manon Lemstra - Lans', short: 'Manon', kantoor: 'Hattem', color: '#22c55e', uren: 28,
-    days: [1,2,3,4], note: 'Wo halve dag', endDate: '2026-06-01',
-    halfDays: { 3: 'ochtend' } },
-  { name: 'Sjantien van Ommen', short: 'Sjantien', kantoor: 'Hattem', color: '#f97316', uren: 24,
-    days: [2,3,5], note: 'Di+Wo+Vr', endDate: '2026-04-01' },
   { name: 'Corine Knol', short: 'Corine', kantoor: 'Hattem', color: '#ec4899', uren: 32,
     days: [1,2,4,5], note: 'Vrij op woensdag', startDate: '2026-06-29' },
 ];
 
-const HOLIDAYS = [
+let HOLIDAYS = [
   { date: '2026-01-01', name: 'Nieuwjaarsdag' },
   { date: '2026-04-06', name: 'Tweede Paasdag' },
   { date: '2026-04-27', name: 'Koningsdag' },
@@ -652,7 +647,6 @@ let VAKANTIE = [
   { medewerker: 'Kyra', start: '2026-02-20', eind: '2026-02-20', type: 'Aangevraagd', dagen: 1 },
   { medewerker: 'Kyra', start: '2026-03-24', eind: '2026-03-24', type: 'Vakantie', dagen: 0.5, dagdeel: 'Middag' },
   { medewerker: 'Kyra', start: '2026-03-26', eind: '2026-03-26', type: 'Verlofdag', dagen: 1 },
-  { medewerker: 'Kyra', start: '2026-04-15', eind: '2026-04-15', type: 'Bijzonder verlof', dagen: 1 },
   { medewerker: 'Kyra', start: '2026-06-10', eind: '2026-06-24', type: 'Zomervakantie', dagen: 10 },
   { medewerker: 'Henriëtte', start: '2026-02-12', eind: '2026-02-12', type: 'Vrij', dagen: 1 },
   { medewerker: 'Henriëtte', start: '2026-04-20', eind: '2026-04-21', type: 'Vrij', dagen: 2 },
@@ -664,8 +658,6 @@ let VAKANTIE = [
   { medewerker: 'Gerben', start: '2026-06-22', eind: '2026-07-10', type: 'Zomervakantie', dagen: 12 },
   { medewerker: 'Corine', start: '2026-07-20', eind: '2026-08-02', type: 'Zomervakantie', dagen: 8 },
   { medewerker: 'Leonie', start: '2026-08-21', eind: '2026-08-23', type: 'Vakantie', dagen: 1 },
-  { medewerker: 'Manon', start: '2026-02-18', eind: '2026-02-18', type: 'Vrij', dagen: 0.5, dagdeel: 'Ochtend' },
-  { medewerker: 'Manon', start: '2026-05-11', eind: '2026-05-11', type: 'Vrij', dagen: 1 },
 ];
 
 const DAY_NAMES = ['Zondag','Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag','Zaterdag'];
@@ -673,18 +665,85 @@ const DAY_SHORT = ['Zo','Ma','Di','Wo','Do','Vr','Za'];
 const MONTH_NAMES = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
 const PRIVATE_VERLOF_TYPES = new Set(['Ziekte', 'Zwangerschapsverlof', 'Bevallingsverlof', 'Ouderschapsverlof']);
 const API_NAME_MAP = {
-  'Manon Lemstra - Lans': 'Manon',
   'Hester van Laar': 'Hester',
   'Kyra Willems': 'Kyra',
   'Ellen van der Meulen Bosma': 'Ellen',
-  'Sjantien van Ommen': 'Sjantien',
   'Lars de Vries': 'Lars',
   'Corine Knol': 'Corine',
 };
 
+const FALLBACK_EMPLOYEES = EMPLOYEES.map(e => JSON.parse(JSON.stringify(e)));
+const FALLBACK_EMPLOYEE_BY_SHORT = FALLBACK_EMPLOYEES.reduce((acc, emp, index) => {
+  acc[emp.short] = { emp, index };
+  return acc;
+}, {});
+const DEFAULT_EMPLOYEE_COLORS = ['#0ea5e9', '#8b5cf6', '#f59e0b', '#f97316', '#22c55e', '#ef4444', '#14b8a6', '#3b82f6', '#ec4899'];
+
 let currentView = 'week';
 let currentDate = new Date();
 let currentKantoor = 'alle';
+
+function cloneEmployee(emp) {
+  return emp ? JSON.parse(JSON.stringify(emp)) : {};
+}
+
+function colorForEmployee(short) {
+  let hash = 0;
+  for (let i = 0; i < short.length; i++) hash = (hash * 31 + short.charCodeAt(i)) >>> 0;
+  return DEFAULT_EMPLOYEE_COLORS[hash % DEFAULT_EMPLOYEE_COLORS.length];
+}
+
+function normalizeApiEmployee(apiEmp) {
+  const fallbackEntry = FALLBACK_EMPLOYEE_BY_SHORT[apiEmp.short] || null;
+  const fallback = cloneEmployee(fallbackEntry && fallbackEntry.emp);
+  const emp = { ...fallback, ...apiEmp };
+  emp.name = apiEmp.name || fallback.name || apiEmp.short;
+  emp.short = apiEmp.short || fallback.short || emp.name;
+  emp.kantoor = apiEmp.kantoor || fallback.kantoor || 'Zwolle';
+  emp.color = apiEmp.color || fallback.color || colorForEmployee(emp.short);
+  emp.uren = Number.isFinite(apiEmp.uren) ? apiEmp.uren : (fallback.uren || 0);
+  emp.days = Array.isArray(apiEmp.days) ? apiEmp.days : (fallback.days || []);
+  emp.note = apiEmp.note !== undefined ? apiEmp.note : (fallback.note || '');
+
+  if (Array.isArray(apiEmp.days)) {
+    delete emp.changeDate;
+    delete emp.newDays;
+    delete emp.newUren;
+    delete emp.newNote;
+  }
+  return emp;
+}
+
+function sortEmployeesForDisplay(a, b) {
+  const ai = FALLBACK_EMPLOYEE_BY_SHORT[a.short]?.index ?? 999;
+  const bi = FALLBACK_EMPLOYEE_BY_SHORT[b.short]?.index ?? 999;
+  if (ai !== bi) return ai - bi;
+  return a.short.localeCompare(b.short, 'nl');
+}
+
+function mergeApiEmployees(apiEmployees) {
+  const visibleByShort = {};
+  const hiddenShorts = new Set();
+
+  apiEmployees.forEach(apiEmp => {
+    if (!apiEmp || !apiEmp.short) return;
+    if (apiEmp.calendarVisible === false) {
+      hiddenShorts.add(apiEmp.short);
+      return;
+    }
+    visibleByShort[apiEmp.short] = apiEmp;
+  });
+
+  const merged = FALLBACK_EMPLOYEES
+    .filter(emp => !hiddenShorts.has(emp.short))
+    .map(emp => visibleByShort[emp.short] ? normalizeApiEmployee(visibleByShort[emp.short]) : cloneEmployee(emp));
+
+  Object.keys(visibleByShort).forEach(short => {
+    if (!FALLBACK_EMPLOYEE_BY_SHORT[short]) merged.push(normalizeApiEmployee(visibleByShort[short]));
+  });
+
+  return merged.sort(sortEmployeesForDisplay);
+}
 
 function toLocalDateStr(date) {
   const y = date.getFullYear();
@@ -1069,9 +1128,8 @@ document.addEventListener('keydown', e => {
 render();
 
 // ============================================================
-// NOTION SYNC — haal verlofdata live op vanuit Railway API
+// NOTION SYNC — haal kalenderdata live op vanuit Google Apps Script
 // ============================================================
-// Pas deze URL aan naar jouw Railway deployment (https://xxxxx.up.railway.app)
 const VERLOF_API_URL = window.VERLOF_API_URL || 'https://script.google.com/macros/s/AKfycbwkMs7RAIz98VFBa1_3fkudmbBrXx0vsf7LIFCz75yB4Y2BDYIEtVGHWRUZzDEZIkgkCA/exec';
 
 async function syncVerlof() {
@@ -1081,6 +1139,14 @@ async function syncVerlof() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     if (!data.verlof || !Array.isArray(data.verlof)) throw new Error('ongeldig antwoord');
+    if (Array.isArray(data.medewerkers) && data.medewerkers.length) {
+      EMPLOYEES = mergeApiEmployees(data.medewerkers);
+    }
+    if (Array.isArray(data.feestdagen) && data.feestdagen.length) {
+      HOLIDAYS = data.feestdagen
+        .filter(h => h && h.date && h.name)
+        .map(h => ({ date: h.date, name: h.name }));
+    }
     VAKANTIE = data.verlof.filter(v => !PRIVATE_VERLOF_TYPES.has(v.type)).map(v => ({
       medewerker: API_NAME_MAP[v.medewerker] || v.medewerker,
       start: v.start,
@@ -1093,7 +1159,7 @@ async function syncVerlof() {
     render();
     const badge = document.getElementById('syncBadge');
     if (badge) {
-      badge.textContent = 'Notion · ' + VAKANTIE.length + ' posten';
+      badge.textContent = 'Notion · ' + VAKANTIE.length + ' verlof · ' + EMPLOYEES.length + ' medewerkers';
       badge.style.background = '#dcfce7';
       badge.style.color = '#166534';
     }
