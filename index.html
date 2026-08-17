@@ -610,19 +610,19 @@ let EMPLOYEES = [
     days: [1,2,3,5], note: 'Vrij op donderdag', startDate: '2026-04-01' },
   { name: 'Hester van Laar', short: 'Hester', kantoor: 'Zwolle', color: '#22c55e', uren: 24,
     days: [1,2,3], note: 'Ma+Di+Wo' },
-  { name: 'Maurits', short: 'Maurits', kantoor: 'Zwolle', color: '#ef4444', uren: 16,
+  { name: 'Maurits Dussink', short: 'Maurits', kantoor: 'Zwolle', color: '#ef4444', uren: 16,
     days: [4,5], note: 'Do+Vr', startDate: '2026-03-01',
     changes: [
       { date: '2026-05-01', days: [1,2,4,5], uren: 32, note: 'Vrij op woensdag' },
       { date: '2026-07-06', days: [2,3,4,5], uren: 32, note: 'Vrij op maandag' },
     ] },
-  { name: 'Leonie', short: 'Leonie', kantoor: 'Zwolle', color: '#14b8a6', uren: 32,
+  { name: 'Leonie Esselink', short: 'Leonie', kantoor: 'Zwolle', color: '#14b8a6', uren: 32,
     days: [1,2,4,5], note: 'Vrij op woensdag', startDate: '2026-08-01' },
-  { name: 'Henriëtte', short: 'Henriëtte', kantoor: 'Zwolle', color: '#3b82f6', uren: 30,
+  { name: 'Henriëtte Boddeus', short: 'Henriëtte', kantoor: 'Zwolle', color: '#3b82f6', uren: 30,
     days: [1,2,3,4], note: 'Vrij op vrijdag' },
   { name: 'Lars de Vries', short: 'Lars', kantoor: 'Hattem', color: '#3b82f6', uren: 40,
     days: [1,2,3,4,5], note: '', startDate: '2026-04-01' },
-  { name: 'Gerben', short: 'Gerben', kantoor: 'Hattem', color: '#8b5cf6', uren: 32,
+  { name: 'Gerben ten Broeke', short: 'Gerben', kantoor: 'Hattem', color: '#8b5cf6', uren: 32,
     days: [1,2,4,5], note: 'Vrij op woensdag', startDate: '2026-03-01' },
   { name: 'Corine Knol', short: 'Corine', kantoor: 'Hattem', color: '#ec4899', uren: 32,
     days: [1,2,4,5], note: 'Vrij op woensdag', startDate: '2026-06-29' },
@@ -668,11 +668,19 @@ const DAY_SHORT = ['Zo','Ma','Di','Wo','Do','Vr','Za'];
 const MONTH_NAMES = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
 const PRIVATE_VERLOF_TYPES = new Set(['Ziekte', 'Zwangerschapsverlof', 'Bevallingsverlof', 'Ouderschapsverlof']);
 const API_NAME_MAP = {
+  'Gerben': 'Gerben',
+  'Gerben ten Broeke': 'Gerben',
+  'Henriëtte': 'Henriëtte',
+  'Henriëtte Boddeus': 'Henriëtte',
   'Hester van Laar': 'Hester',
   'Kyra Willems': 'Kyra',
   'Ellen van der Meulen Bosma': 'Ellen',
+  'Maurits': 'Maurits',
+  'Maurits Dussink': 'Maurits',
   'Lars de Vries': 'Lars',
   'Corine Knol': 'Corine',
+  'Leonie': 'Leonie',
+  'Leonie Esselink': 'Leonie',
 };
 
 const FALLBACK_EMPLOYEES = EMPLOYEES.map(e => JSON.parse(JSON.stringify(e)));
