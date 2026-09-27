@@ -19,6 +19,9 @@
     --vacation: #7c3aed;
     --vacation-light: #f3e8ff;
     --vacation-border: #a78bfa;
+    --training: #0f766e;
+    --training-light: #ccfbf1;
+    --training-border: #2dd4bf;
     --holiday: #dc2626;
     --holiday-light: #fef2f2;
     --holiday-border: #f87171;
@@ -289,6 +292,32 @@
     margin-top: 2px;
   }
 
+  /* Training */
+  .cell-training {
+    background: var(--training-light);
+    border-left-color: var(--training-border);
+  }
+  .cell-training .cell-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .cell-training .cell-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--training);
+    text-transform: uppercase;
+  }
+  .cell-training .cell-icon {
+    font-size: 16px;
+    color: var(--training);
+  }
+  .cell-training .cell-sub {
+    font-size: 9px;
+    color: var(--training);
+    margin-top: 2px;
+  }
+
   /* Holiday */
   .cell-holiday {
     background: var(--holiday-light);
@@ -452,6 +481,12 @@
     color: var(--vacation);
     text-decoration: line-through;
   }
+  .month-person.training {
+    background: var(--training-light);
+    border-radius: 3px;
+    padding: 1px 3px;
+    color: var(--training);
+  }
   .holiday-label-sm {
     color: var(--holiday);
     font-size: 11px;
@@ -524,7 +559,7 @@
     .emp-avatar { width: 30px; height: 30px; font-size: 11px; }
     .emp-name { font-size: 11px; }
     .day-cell { padding: 4px 6px; min-height: 40px; }
-    .cell-work .cell-label, .cell-vacation .cell-label, .cell-holiday .cell-label { font-size: 9px; }
+    .cell-work .cell-label, .cell-vacation .cell-label, .cell-training .cell-label, .cell-holiday .cell-label { font-size: 9px; }
     .year-grid { grid-template-columns: repeat(2, 1fr); }
   }
   @media (max-width: 600px) {
@@ -585,6 +620,10 @@
       Vakantie / Vrij
     </div>
     <div class="legend-item">
+      <div class="legend-swatch" style="background:var(--training-light);border-left-color:var(--training-border)"></div>
+      Training
+    </div>
+    <div class="legend-item">
       <div class="legend-swatch" style="background:var(--holiday-light);border-left-color:var(--holiday-border)"></div>
       Feestdag
     </div>
@@ -636,6 +675,8 @@ let HOLIDAYS = [
   { date: '2026-05-14', name: 'Hemelvaartsdag' },
   { date: '2026-05-15', name: 'Kantoorsluiting' },
   { date: '2026-05-25', name: 'Tweede Pinksterdag' },
+  { date: '2026-09-25', name: 'Bedrijfsuitje' },
+  { date: '2026-09-26', name: 'Bedrijfsuitje' },
   { date: '2026-12-25', name: 'Eerste Kerstdag' },
   { date: '2026-12-26', name: 'Tweede Kerstdag' },
   { date: '2026-12-28', name: 'Bedrijfssluiting' },
@@ -787,6 +828,27 @@ function getVakantie(emp, date) {
   return VAKANTIE.find(v => v.medewerker === emp.short && dateStr >= v.start && dateStr <= v.eind);
 }
 
+function isTrainingType(type) {
+  return /training/i.test(type || '');
+}
+
+function getAbsenceDisplay(vakantie) {
+  const training = isTrainingType(vakantie && vakantie.type);
+  return {
+    className: training ? 'cell-training' : 'cell-vacation',
+    icon: training ? 'school' : 'flight',
+    label: training ? 'Training' : vakantie.type,
+    sub: training ? 'Training' : 'Verlof',
+    marker: training ? '🎓' : '✈',
+    lightVar: training ? 'var(--training-light)' : 'var(--vacation-light)',
+    borderVar: training ? 'var(--training-border)' : 'var(--vacation-border)',
+  };
+}
+
+function holidaySubLabel(holiday) {
+  return /bedrijfsuitje/i.test(holiday.name || '') ? 'Team event' : 'Feestdag';
+}
+
 function isEmployeeActive(emp, date) {
   const dateStr = toLocalDateStr(date);
   if (emp.endDate && dateStr >= emp.endDate) return false;
@@ -873,54 +935,57 @@ function renderDayCell(emp, date) {
   }
 
   if (holiday) {
+    const holidaySub = holidaySubLabel(holiday);
     return `<div class="day-cell cell-holiday">
       <div class="cell-top">
         <span class="cell-label">${holiday.name.length > 14 ? holiday.name.substring(0,12) + '…' : holiday.name}</span>
         <span class="material-symbols-outlined cell-icon">celebration</span>
       </div>
-      <span class="cell-sub">Feestdag</span>
+      <span class="cell-sub">${holidaySub}</span>
     </div>`;
   }
 
   if (vakantie) {
+    const absence = getAbsenceDisplay(vakantie);
     // Halve dag verlof: paarse split cel
     if (vakantie.dagen === 0.5) {
       const dagdeel = vakantie.dagdeel || 'Hele dag';
       // Dagdeel = welk deel is VRIJ (Ochtend = ochtend vrij, Middag = middag vrij)
       const ochtendVrij = dagdeel === 'Ochtend';
+      const vrijLabel = absence.sub === 'Training' ? 'training' : 'vrij';
       // Ochtend vrij → verlof bovenaan, aanwezig onderaan
       // Middag vrij → aanwezig bovenaan, verlof onderaan
       if (ochtendVrij) {
-        return `<div class="day-cell cell-vacation" style="padding: 0;">
-          <div style="padding: 6px 8px 2px; flex: 1; background: var(--vacation-light); border-radius: 10px 10px 0 0;">
-            <span class="cell-label" style="font-size: 11px;">Ochtend vrij</span>
-            <span class="cell-sub">Verlof</span>
+        return `<div class="day-cell ${absence.className}" style="padding: 0;">
+          <div style="padding: 6px 8px 2px; flex: 1; background: ${absence.lightVar}; border-radius: 10px 10px 0 0;">
+            <span class="cell-label" style="font-size: 11px;">Ochtend ${vrijLabel}</span>
+            <span class="cell-sub">${absence.sub}</span>
           </div>
-          <div style="border-top: 1.5px dashed var(--vacation-border); margin: 0 6px;"></div>
+          <div style="border-top: 1.5px dashed ${absence.borderVar}; margin: 0 6px;"></div>
           <div style="padding: 2px 8px 6px; flex: 1;">
             <span class="cell-label" style="color: var(--primary); font-size: 11px;">Middag</span>
             <span class="cell-sub" style="color: var(--primary);">Aanwezig</span>
           </div>
         </div>`;
       }
-      return `<div class="day-cell cell-vacation" style="padding: 0;">
+      return `<div class="day-cell ${absence.className}" style="padding: 0;">
         <div style="padding: 6px 8px 2px; flex: 1;">
           <span class="cell-label" style="color: var(--primary); font-size: 11px;">Ochtend</span>
           <span class="cell-sub" style="color: var(--primary);">Aanwezig</span>
         </div>
-        <div style="border-top: 1.5px dashed var(--vacation-border); margin: 0 6px;"></div>
-        <div style="padding: 2px 8px 6px; flex: 1; background: var(--vacation-light); border-radius: 0 0 10px 10px;">
-          <span class="cell-label" style="font-size: 11px;">Middag vrij</span>
-          <span class="cell-sub">Verlof</span>
+        <div style="border-top: 1.5px dashed ${absence.borderVar}; margin: 0 6px;"></div>
+        <div style="padding: 2px 8px 6px; flex: 1; background: ${absence.lightVar}; border-radius: 0 0 10px 10px;">
+          <span class="cell-label" style="font-size: 11px;">Middag ${vrijLabel}</span>
+          <span class="cell-sub">${absence.sub}</span>
         </div>
       </div>`;
     }
-    return `<div class="day-cell cell-vacation">
+    return `<div class="day-cell ${absence.className}">
       <div class="cell-top">
-        <span class="cell-label">${vakantie.type.length > 14 ? vakantie.type.substring(0,12) + '…' : vakantie.type}</span>
-        <span class="material-symbols-outlined cell-icon">flight</span>
+        <span class="cell-label">${absence.label.length > 14 ? absence.label.substring(0,12) + '…' : absence.label}</span>
+        <span class="material-symbols-outlined cell-icon">${absence.icon}</span>
       </div>
-      <span class="cell-sub">Verlof</span>
+      <span class="cell-sub">${absence.sub}</span>
     </div>`;
   }
 
@@ -1059,7 +1124,11 @@ function renderMonth() {
         ${holiday ? `<div class="holiday-label-sm">${holiday.name}</div>` : ''}
         ${!holiday ? workers.map(e => {
           const v = getVakantie(e, date);
-          if (v) return `<div class="month-person vacation"><div class="month-dot" style="background:${e.color}"></div><span>✈ ${e.short}</span></div>`;
+          if (v) {
+            const absence = getAbsenceDisplay(v);
+            const monthClass = isTrainingType(v.type) ? 'training' : 'vacation';
+            return `<div class="month-person ${monthClass}"><div class="month-dot" style="background:${e.color}"></div><span>${absence.marker} ${e.short}</span></div>`;
+          }
           return `<div class="month-person"><div class="month-dot" style="background:${e.color}"></div><span>${e.short}</span></div>`;
         }).join('') : ''}
       </div>`;
@@ -1098,11 +1167,19 @@ function renderYear() {
           return worksOnDay(e, date);
         });
         const today = isToday(date) ? ' today' : '';
-        const onVac = workers.filter(e => getVakantie(e, date));
+        const onVac = workers.filter(e => {
+          const v = getVakantie(e, date);
+          return v && !isTrainingType(v.type);
+        });
+        const onTraining = workers.filter(e => {
+          const v = getVakantie(e, date);
+          return v && isTrainingType(v.type);
+        });
         const atWork = workers.filter(e => !getVakantie(e, date));
         const tooltipParts = [];
         if (atWork.length) tooltipParts.push(atWork.map(e => e.short).join(', '));
         if (onVac.length) tooltipParts.push('✈ ' + onVac.map(e => e.short).join(', '));
+        if (onTraining.length) tooltipParts.push('🎓 ' + onTraining.map(e => e.short).join(', '));
         const tooltip = holiday ? holiday.name : (tooltipParts.join(' · ') || 'Niemand');
         const count = atWork.length;
         const opacity = holiday ? 0 : Math.min(count / 8, 1);
