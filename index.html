@@ -207,6 +207,19 @@
     color: white;
     border-radius: 50%;
   }
+  .focus-banner {
+    margin: -4px 0 18px;
+    padding: 10px 14px;
+    border-left: 3px solid var(--primary);
+    background: var(--primary-light);
+    font-size: 13px;
+  }
+  .focus-banner[hidden] { display: none; }
+  .emp-card.focus-employee,
+  .day-cell.focus-cell {
+    outline: 3px solid var(--primary);
+    outline-offset: -3px;
+  }
 
   /* Employee Card (left column) */
   .emp-card {
@@ -623,6 +636,8 @@
     </div>
   </div>
 
+  <div id="focusBanner" class="focus-banner" hidden></div>
+
   <!-- Legend -->
   <div class="legend">
     <div class="legend-item">
@@ -758,6 +773,7 @@ const DEFAULT_EMPLOYEE_COLORS = ['#0ea5e9', '#8b5cf6', '#f59e0b', '#f97316', '#2
 let currentView = 'week';
 let currentDate = new Date();
 let focusedDate = '';
+let focusedPerson = employeeFromQuery(window.location.search, EMPLOYEES);
 const linkedDate = dateFromQuery(window.location.search);
 if (linkedDate) {
   currentDate = linkedDate;
@@ -839,6 +855,23 @@ function dateFromQuery(search) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return null;
   const date = new Date(`${value}T12:00:00`);
   return Number.isNaN(date.getTime()) || toLocalDateStr(date) !== value ? null : date;
+}
+
+function employeeFromQuery(search, employees) {
+  const value = new URLSearchParams(search).get('person');
+  return employees.find(emp => emp.name === value || emp.short === value)?.short || '';
+}
+
+function renderFocusBanner() {
+  const banner = document.getElementById('focusBanner');
+  const employee = EMPLOYEES.find(emp => emp.short === focusedPerson);
+  banner.hidden = !focusedDate || !employee || currentView !== 'week';
+  if (!banner.hidden) {
+    banner.textContent = `Werkrooster bij aanvraag van ${employee.name} op ${focusedDate.split('-').reverse().join('-')}`;
+    if (!VAKANTIE.some(item => item.medewerker === employee.short && item.start <= focusedDate && item.eind >= focusedDate)) {
+      banner.append(document.createTextNode(' · Aanvraag niet zichtbaar in de kalendergegevens'));
+    }
+  }
 }
 
 function getWeekNumber(d) {
@@ -1115,7 +1148,8 @@ function renderWeek() {
       const schedule = getEmployeeSchedule(emp, monday);
       const note = schedule.note;
       const uren = schedule.uren;
-      html += `<div class="emp-card">
+      const focusedRow = emp.short === focusedPerson && getKantoorForDay(emp, currentDate) === kantoor;
+      html += `<div class="emp-card${focusedRow ? ' focus-employee' : ''}"${focusedRow ? ' id="focus-target"' : ''}>
         <div class="emp-avatar" style="background:${emp.color}20;color:${emp.color}">
           ${getInitials(emp.short)}
         </div>
@@ -1132,7 +1166,10 @@ function renderWeek() {
           // Show as "other location" cell
           html += `<div class="day-cell cell-off" title="${emp.short} is in ${dayKantoor}"><span class="material-symbols-outlined cell-icon" style="font-size:14px;color:#94a3b8">location_on</span></div>`;
         } else {
-          html += renderDayCell(emp, day);
+          const cell = renderDayCell(emp, day);
+          html += focusedRow && toLocalDateStr(day) === focusedDate
+            ? cell.replace('class="day-cell ', 'class="day-cell focus-cell ')
+            : cell;
         }
       });
     });
@@ -1141,6 +1178,7 @@ function renderWeek() {
   });
 
   document.getElementById('calendar').innerHTML = html;
+  document.getElementById('focus-target')?.scrollIntoView({ block: 'center' });
 }
 
 function renderMonth() {
@@ -1257,6 +1295,7 @@ function render() {
   if (currentView === 'week') renderWeek();
   else if (currentView === 'month') renderMonth();
   else renderYear();
+  renderFocusBanner();
 }
 
 function setView(view) {
@@ -1275,13 +1314,15 @@ function setKantoor(k) {
 }
 
 function navigate(dir) {
+  focusedDate = '';
+  focusedPerson = '';
   if (currentView === 'week') currentDate.setDate(currentDate.getDate() + dir * 7);
   else if (currentView === 'month') currentDate.setMonth(currentDate.getMonth() + dir);
   else currentDate.setFullYear(currentDate.getFullYear() + dir);
   render();
 }
 
-function goToday() { currentDate = new Date(); focusedDate = ''; render(); }
+function goToday() { currentDate = new Date(); focusedDate = ''; focusedPerson = ''; render(); }
 
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft') navigate(-1);
