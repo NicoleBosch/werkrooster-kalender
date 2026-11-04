@@ -356,6 +356,15 @@
     font-size: 20px;
     color: #cbd5e1;
   }
+  .cell-roostervrij .cell-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .cell-roostervrij .cell-sub {
+    font-size: 9px;
+    color: var(--muted);
+  }
 
   /* Half day */
   .cell-half {
@@ -642,9 +651,9 @@ let EMPLOYEES = [
     days: [1,2,3,4,5], note: 'Di in Hattem',
     kantoorPerDay: { 1: 'Zwolle', 2: 'Hattem', 3: 'Zwolle', 4: 'Zwolle', 5: 'Zwolle' } },
   { name: 'Kyra Willems', short: 'Kyra', kantoor: 'Zwolle', color: '#8b5cf6', uren: 36,
-    days: [1,2,4,5], altWednesday: 'even', note: 'Wo in even weken' },
+    days: [1,2,4,5], altWednesday: 'even', note: 'Wo om de week' },
   { name: 'Monika van Dam', short: 'Monika', kantoor: 'Zwolle', color: '#f59e0b', uren: 36,
-    days: [1,2,4,5], altWednesday: 'odd', note: 'Wo in oneven weken' },
+    days: [1,2,4,5], altWednesday: 'odd', note: 'Wo om de week' },
   { name: 'Ellen van der Meulen Bosma', short: 'Ellen', kantoor: 'Zwolle', color: '#f97316', uren: 32,
     days: [1,2,3,5], note: 'Vrij op donderdag', startDate: '2026-04-01' },
   { name: 'Hester van Laar', short: 'Hester', kantoor: 'Zwolle', color: '#22c55e', uren: 24,
@@ -684,6 +693,15 @@ let HOLIDAYS = [
   { date: '2026-12-30', name: 'Bedrijfssluiting' },
   { date: '2026-12-31', name: 'Bedrijfssluiting' },
   { date: '2027-01-01', name: 'Nieuwjaarsdag' },
+  { date: '2027-03-29', name: 'Tweede Paasdag' },
+  { date: '2027-04-27', name: 'Koningsdag' },
+  { date: '2027-05-05', name: 'Bevrijdingsdag - kantoor gesloten' },
+  { date: '2027-05-06', name: 'Hemelvaartsdag' },
+  { date: '2027-05-07', name: 'Kantoorsluiting - dag na Hemelvaart' },
+  { date: '2027-05-17', name: 'Tweede Pinksterdag' },
+  { date: '2027-12-25', name: 'Eerste Kerstdag' },
+  { date: '2027-12-26', name: 'Tweede Kerstdag' },
+  { date: '2027-12-31', name: 'Kantoorsluiting - Oudjaarsdag' },
 ];
 
 // Fallback verlofdata — wordt bij laden overschreven door API (als beschikbaar)
@@ -811,6 +829,12 @@ function getWeekNumber(d) {
   return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
 }
 
+function getRoosterWeekNumber(d) {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
+  return Math.round((date.getTime() - Date.UTC(2025, 11, 29)) / 604800000) + 1;
+}
+
 function getMonday(d) {
   const date = new Date(d);
   const day = date.getDay();
@@ -890,13 +914,12 @@ function worksOnDay(emp, date) {
   const dow = date.getDay();
   if (dow === 0 || dow === 6) return false;
   const { days } = getEmployeeDays(emp, date);
-  if (days.includes(dow)) return true;
   if (dow === 3 && emp.altWednesday) {
-    const weekNum = getWeekNumber(date);
+    const weekNum = getRoosterWeekNumber(date);
     if (emp.altWednesday === 'even') return weekNum % 2 === 0;
     if (emp.altWednesday === 'odd') return weekNum % 2 !== 0;
   }
-  return false;
+  return days.includes(dow);
 }
 
 function isToday(date) {
@@ -1012,6 +1035,12 @@ function renderDayCell(emp, date) {
     </div>`;
   }
 
+  if (date.getDay() === 3 && emp.altWednesday) {
+    return `<div class="day-cell cell-off cell-roostervrij" title="Roostervrij om de week">
+      <span class="cell-label">Vrij</span>
+      <span class="cell-sub">Wisselwoensdag</span>
+    </div>`;
+  }
   return `<div class="day-cell cell-off"><span class="material-symbols-outlined cell-icon">block</span></div>`;
 }
 
