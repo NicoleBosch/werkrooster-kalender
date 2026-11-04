@@ -660,6 +660,7 @@ let EMPLOYEES = [
     days: [1,2,3], note: 'Ma+Di+Wo' },
   { name: 'Maurits Dussink', short: 'Maurits', kantoor: 'Zwolle', color: '#ef4444', uren: 16,
     days: [4,5], note: 'Do+Vr', startDate: '2026-03-01',
+    alternateOfficeWednesday: { start: '2026-11-04', office: 'Hattem', role: 'desk' },
     changes: [
       { date: '2026-05-01', days: [1,2,4,5], uren: 32, note: 'Vrij op woensdag' },
       { date: '2026-07-06', days: [2,3,4,5], uren: 32, note: 'Vrij op maandag' },
@@ -937,6 +938,12 @@ function getInitials(name) {
 
 function getKantoorForDay(emp, date) {
   const dow = date.getDay();
+  const alternate = emp.alternateOfficeWednesday;
+  if (dow === 3 && alternate && toLocalDateStr(date) >= alternate.start) {
+    const start = new Date(`${alternate.start}T12:00:00`);
+    const days = Math.round((date.getTime() - start.getTime()) / 86400000);
+    if (days % 14 === 0) return alternate.office;
+  }
   if (emp.kantoorPerDay && emp.kantoorPerDay[dow]) return emp.kantoorPerDay[dow];
   return emp.kantoor;
 }
@@ -1028,6 +1035,7 @@ function renderDayCell(emp, date) {
     }
     let sub = '';
     if (dow === 3 && emp.altWednesday) sub = 'wisselwoensdag';
+    if (dow === 3 && emp.alternateOfficeWednesday && getKantoorForDay(emp, date) === emp.alternateOfficeWednesday.office) sub = 'Binnendienst Hattem';
     const { note } = getEmployeeDays(emp, date);
     return `<div class="day-cell cell-work">
       <span class="cell-label">Aanwezig</span>
