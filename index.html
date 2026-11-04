@@ -185,6 +185,11 @@
   .grid-header.today-header {
     color: var(--today-ring);
   }
+  .grid-header.focus-header {
+    color: var(--primary);
+    background: var(--primary-light);
+    border-radius: 6px;
+  }
   .grid-header .header-date {
     display: block;
     font-size: 18px;
@@ -752,6 +757,12 @@ const DEFAULT_EMPLOYEE_COLORS = ['#0ea5e9', '#8b5cf6', '#f59e0b', '#f97316', '#2
 
 let currentView = 'week';
 let currentDate = new Date();
+let focusedDate = '';
+const linkedDate = dateFromQuery(window.location.search);
+if (linkedDate) {
+  currentDate = linkedDate;
+  focusedDate = toLocalDateStr(linkedDate);
+}
 let currentKantoor = 'alle';
 
 function cloneEmployee(emp) {
@@ -821,6 +832,13 @@ function toLocalDateStr(date) {
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
+}
+
+function dateFromQuery(search) {
+  const value = new URLSearchParams(search).get('date');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return null;
+  const date = new Date(`${value}T12:00:00`);
+  return Number.isNaN(date.getTime()) || toLocalDateStr(date) !== value ? null : date;
 }
 
 function getWeekNumber(d) {
@@ -1083,7 +1101,8 @@ function renderWeek() {
     html += '<div></div>';
     weekDays.forEach(day => {
       const today = isToday(day) ? ' today-header' : '';
-      html += `<div class="grid-header${today}">
+      const focused = toLocalDateStr(day) === focusedDate ? ' focus-header' : '';
+      html += `<div class="grid-header${today}${focused}">
         ${DAY_SHORT[day.getDay()]}
         <span class="header-date">${day.getDate()}</span>
       </div>`;
@@ -1262,7 +1281,7 @@ function navigate(dir) {
   render();
 }
 
-function goToday() { currentDate = new Date(); render(); }
+function goToday() { currentDate = new Date(); focusedDate = ''; render(); }
 
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft') navigate(-1);
