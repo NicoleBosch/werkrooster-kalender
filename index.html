@@ -922,7 +922,9 @@ function getAbsenceDisplay(vakantie) {
 }
 
 function holidaySubLabel(holiday) {
-  return /bedrijfsuitje/i.test(holiday.name || '') ? 'Team event' : 'Feestdag';
+  const name = holiday.name || '';
+  if (/bedrijfsuitje/i.test(name)) return 'Team event';
+  return /^(kantoor|bedrijfs)sluiting/i.test(name) ? 'Kantoor gesloten' : 'Feestdag';
 }
 
 function isEmployeeActive(emp, date) {
